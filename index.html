@@ -1,0 +1,323 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+TERJ · Rozdział X — Patcher
+Zastosuj: python3 TERJ_chapter_X_patch.py twoj_plik_terj.html
+Lub bez argumentu — patch zostanie wyświetlony jako diff
+"""
+
+import sys, re
+
+CSS_X = """
+/* ══ CHAPTER X — KORUPCJA TERMODYNAMICZNA ══ */
+.kx-thesis{border-left:3px solid var(--rose-dim);background:rgba(224,120,120,.05);padding:1.5rem 2rem;font-style:italic;color:var(--text-mid);font-size:.96rem;line-height:1.72;margin-bottom:2rem;}
+.kx-thesis .kxt-label{font-family:var(--font-mono);font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--rose-dim);display:block;margin-bottom:.7rem;font-style:normal;}
+sup.kx-fn{font-family:var(--font-mono);font-size:.58rem;color:var(--rose-dim);vertical-align:super;margin-left:1px;cursor:pointer;}
+em.ke{color:var(--rose);font-style:italic;border-bottom:1px dotted var(--rose-dim);}
+em.gp{color:var(--teal);font-style:italic;border-bottom:1px dotted var(--teal-dim);}
+.endo-pair{display:grid;grid-template-columns:1fr auto 1fr;gap:0;margin:2.5rem 0;border-radius:12px;overflow:hidden;border:1px solid var(--border);}
+.endo-half{padding:1.8rem 1.5rem;}
+.endo-half.kelipa-h{background:rgba(224,120,120,.07);}
+.endo-half.endo-h{background:rgba(82,208,176,.07);}
+.endo-mid{display:flex;align-items:center;justify-content:center;padding:0 1rem;background:rgba(10,18,45,.6);border-left:1px solid var(--border);border-right:1px solid var(--border);}
+.endo-mid-sym{font-size:1.8rem;color:var(--gold-dim);}
+.endo-label{font-family:var(--font-title);font-size:.68rem;letter-spacing:.16em;display:block;margin-bottom:.6rem;}
+.endo-half.kelipa-h .endo-label{color:var(--rose);}
+.endo-half.endo-h .endo-label{color:var(--teal);}
+.endo-outcome{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;margin-top:1rem;padding:.45rem .65rem;border-radius:4px;line-height:1.5;}
+.endo-half.kelipa-h .endo-outcome{background:rgba(224,120,120,.1);color:var(--rose);}
+.endo-half.endo-h .endo-outcome{background:rgba(82,208,176,.1);color:var(--teal);}
+.endo-item{display:flex;align-items:baseline;gap:.5rem;font-size:.84rem;color:var(--text-mid);line-height:1.6;margin-bottom:.4rem;}
+.endo-item::before{content:'·';flex-shrink:0;}
+.endo-half.kelipa-h .endo-item::before{color:var(--rose);}
+.endo-half.endo-h .endo-item::before{color:var(--teal);}
+.ceil-proof{margin:2rem 0;border:1px solid rgba(224,120,120,.25);border-left:3px solid var(--rose-dim);background:rgba(224,120,120,.04);border-radius:0 8px 8px 0;padding:1.5rem 1.8rem;}
+.ceil-proof .cp-label{font-family:var(--font-mono);font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--rose-dim);display:block;margin-bottom:.8rem;}
+.brain-box{margin:2.5rem 0;background:rgba(155,132,232,.06);border:1px solid rgba(155,132,232,.2);border-radius:10px;padding:1.8rem 2rem;position:relative;overflow:hidden;}
+.brain-box::before{content:'paradoks kognitywny · TERJ';position:absolute;top:-1px;left:1.5rem;font-family:var(--font-mono);font-size:7.5px;letter-spacing:.22em;color:rgba(155,132,232,.7);text-transform:uppercase;background:var(--ink);padding:0 .6rem;}
+.brain-box::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--violet),transparent);}
+.scalar-hope{margin:2.5rem 0;padding:2rem 2.8rem;background:linear-gradient(135deg,rgba(10,18,45,.96) 0%,rgba(10,26,20,.96) 100%);border:1px solid rgba(82,208,176,.22);border-radius:10px;position:relative;}
+.scalar-hope::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal-dim),transparent);}
+.scalar-hope p{font-family:var(--font-deco);font-size:1.06rem;font-style:italic;font-weight:300;color:rgba(82,208,176,.92);line-height:1.7;text-align:center;margin:0;}
+.div-kx{display:flex;align-items:center;gap:1.5rem;margin:3rem 0;}
+.div-kx::before,.div-kx::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--rose-dim));}
+.div-kx::after{background:linear-gradient(to left,transparent,var(--rose-dim));}
+.div-kx span{font-family:var(--font-deco);font-size:.9rem;color:var(--rose-dim);opacity:.55;}
+.fn-kx{margin-top:2.5rem;padding-top:1.2rem;border-top:1px solid rgba(224,120,120,.2);}
+.fn-kx .fnkx-label{font-family:var(--font-mono);font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--rose-dim);display:block;margin-bottom:.7rem;}
+.fn-kx .fnkx-item{display:flex;gap:.8rem;align-items:baseline;margin-bottom:.5rem;}
+.fn-kx .fnkx-num{font-family:var(--font-mono);font-size:.66rem;color:var(--rose);font-weight:700;min-width:1.6rem;flex-shrink:0;}
+.fn-kx .fnkx-text{font-size:.82rem;color:var(--text-mute);font-style:italic;line-height:1.55;}
+@media(max-width:560px){.endo-pair{grid-template-columns:1fr;}.endo-mid{border-left:none;border-right:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;}}
+"""
+
+NAV_ADDITION = '\n  <a href="#kelipa-eksploatacja" style="color:var(--rose)">Kelipa·Ĝ ✦</a>'
+
+CHAPTER_X = r"""
+<div class="div-rune"><span>✦</span></div>
+
+<!-- ══════════════════════════════════════════════
+     ROZDZIAŁ X — KORUPCJA TERMODYNAMICZNA
+══════════════════════════════════════════════ -->
+<section class="chapter" id="kelipa-eksploatacja">
+  <div class="ch-meta">
+    <span class="ch-num">ROZDZIAŁ X</span>
+    <span class="ch-tag">KORUPCJA TERMODYNAMICZNA · ENDOSYMBIOZA · SKALA GRADIENTU Ĝ</span>
+  </div>
+  <h2 class="ch-title">Kelipa, eksploatacja Ĝ<br>i sufit złożoności</h2>
+  <p class="ch-sub">Dlaczego środowisko eksploatujące gradient niszczy warunki własnego istnienia · Mitochondrium jako dowód skali · Paradoks mózgu · Nadzieja skalarna</p>
+
+  <div class="kx-thesis">
+    <span class="kxt-label">Teza rozdziału</span>
+    Środowisko, które eksploatuje gradient Ĝ zamiast go integrować, niszczy nie tylko swojego dostawcę — niszczy własny mechanizm generowania wyższej złożoności. Jest to korupcja w sensie termodynamicznym, nie moralnym: samozniszczenie warunków własnej żywotności. Mitochondrium nie jest wzorcem dla człowieka — jest fizycznym dowodem skali: struktury zdolne do współpracy, gdy napotkają właściwą architekturę, nie po prostu przeżywają — stają się fundamentem nowego poziomu złożoności niedostępnego żadną ścieżką eksploatacji. Nadzieja TERJ nie jest moralna. Jest skalarna.
+  </div>
+
+  <div class="sec-title">§1 · Eksploatacja Ĝ jako korupcja termodynamiczna — dowód formalny</div>
+
+  <p class="lead">W poprzednich rozdziałach zbudowaliśmy język opisujący gradient Ĝ jako źródło lokalnego porządku, architektury przepływów i złożoności. TERJ musi teraz odpowiedzieć na pytanie, którego nie można pominąć: co się dzieje z systemem, który zamiast integrować gradient — eksploatuje go?</p>
+
+  <p><em>Korupcja</em> w TERJ nie jest kategorią etyczną. Jest kategorią termodynamiczną. Definiujemy ją precyzyjnie:</p>
+
+  <div class="ceil-proof">
+    <span class="cp-label">Definicja · korupcja termodynamiczna · TERJ</span>
+    <p style="font-size:.9rem;color:var(--text-mid);line-height:1.72;margin-bottom:.9rem;">Korupcja systemu = proces, w którym układ dysypatywny czerpie energię organizującą ze źródła gradientu bez podtrzymywania warunków jego istnienia, prowadząc do nieodwracalnej degradacji lokalnej negentropia.</p>
+    <p style="font-size:.9rem;color:var(--text-mid);line-height:1.72;margin:0;">Człowiek-Ĝ jest źródłem gradientu relacyjnego: generuje architekturę zaufania, mosty współpracy, przepływy energii społecznej. Środowisko eksploatujące pobiera tę energię organizującą bez wkładu w podtrzymanie gradientu.</p>
+  </div>
+
+  <div class="fbox" data-label="Bilans gradientu · TERJ">
+    $$\frac{d\hat{G}}{dt} = \sigma_{\text{wewn}} - F_{\text{ekstr}}(t)$$
+    <span class="fcomment">Gdy $F_{\text{ekstr}} > \sigma_{\text{wewn}}$ przez wystarczająco długi czas — gradient zanika nieodwracalnie. To bilans energetyczny każdego źródła w środowisku bez uzupełniania. Nie metafora — równanie opisujące rzeczywistość.</span>
+  </div>
+
+  <p>Korupcja termodynamiczna działa przez trzy mechanizmy, które razem czynią ją nieodwracalną:</p>
+
+  <p><span class="hl-rose">Niszczenie źródła porządku.</span> Środowisko eksploatujące eliminuje jedyną strukturę zdolną do obniżenia własnej entropii. Pochłania swój własny mechanizm regulacji — jak układ immunologiczny atakujący własne tkanki. To nie jest metafora autoimmunologiczna — to opis termodynamicznie identycznego procesu: system niszczy warunek własnej żywotności.<sup class="kx-fn">¹</sup></p>
+
+  <p><span class="hl-rose">Nieodwracalność zgodna z drugą zasadą.</span> Zniszczony gradient nie odbudowuje się samorzutnie. Kapitał zaufania, architektura relacyjna, zdolność generatywna — raz skonsumowane bez podtrzymania, wymagają zewnętrznego wkładu, którego środowisko eksploatacji nie potrafi wygenerować własnymi środkami. Degradacja jest fizycznie nieodwracalna.<sup class="kx-fn">²</sup></p>
+
+  <p><span class="hl-rose">Propagacja Kelipa jako wirusa strukturalnego.</span> Środowisko które nauczyło się eksternalizować koszty <em>transmituje tę logikę</em> do kolejnych węzłów. Każdy człowiek-Ĝ, który pod presją kredytu, zmęczenia i korupcji strukturalnej wchodzi w logikę eksploatacji, staje się nowym wektorem. Kelipa replikuje się nie przez złą wolę — lecz przez mechanikę, jak faza niskoenergetyczna rozprzestrzeniająca się przez nadchłodzoną ciecz przy pierwszym krysztale zarodkującym.</p>
+
+  <div class="snote"><p>Eksternalizacja kosztów nie jest strategią złych ludzi. Jest strategią układów dysypatywnych w środowisku, gdzie koszt można przenieść bez natychmiastowej kary. Termodynamika nie zna moralności — tylko granice systemu i kierunek przepływu entropii.</p></div>
+
+  <div class="div-kx"><span>✦</span></div>
+
+  <div class="sec-title">§2 · Sufit złożoności — czego Kelipa nie może zbudować</div>
+
+  <p>Strategia eksploatacji ma wbudowane fundamentalne ograniczenie: <em class="ke">sufit złożoności</em>. Kelipa maksymalizuje pobieranie energii z istniejących gradientów, ale <em>nie generuje nowych poziomów organizacji</em>. Drapieżnik jest bardziej złożony niż ofiara tylko o tyle, o ile wymaga tego efektywność łowu. Nie dalej.</p>
+
+  <div class="op-pair">
+    <div class="opcard minus">
+      <span class="op-sym">K</span>
+      <span class="op-nm">Złożoność Kelipa · sufit logarytmiczny</span>
+      <p class="op-body">$S_{Kelipa}(t) \propto \ln(\text{dostępne gradienty}(t)) \to -\infty$ gdy gradienty wyczerpane. System rośnie dopóki ma co konsumować. Gdy źródła znikają — złożoność nie wraca do punktu wyjścia. Spada <em>poniżej</em> niego, bo zniszczyła architekturę, której nie odtworzy.</p>
+    </div>
+    <div class="opcard plus">
+      <span class="op-sym">Ĝ</span>
+      <span class="op-nm">Złożoność endosymbiotyczna · wykładnik</span>
+      <p class="op-body">$S_{endo}(t) \propto e^{\,n \cdot \bar{G}}$ gdzie $n$ = liczba zintegrowanych gradientów, $\bar{G}$ = średnia intensywność zachowanego gradientu partnera. Złożoność rośnie <em>wykładniczo</em> z liczbą zachowanych, nieeksploatowanych źródeł. To jest matematyczna różnica między pasożytem a organizmem eukariotycznym.<sup class="kx-fn">³</sup></p>
+    </div>
+  </div>
+
+  <p>Nie chodzi o to, że Kelipa przegrywa długoterminowo. Chodzi o to, że <strong style="color:var(--rose)">ona przegrywa o poziom złożoności</strong>. Nie jest mniej efektywna w robieniu tego samego — ona po prostu nie może wejść w przestrzeń możliwości, do której wejście wymaga integracji gradientów zamiast ich konsumpcji. To jest sufit fizyczny, nie moralny.</p>
+
+  <div class="div-kx"><span>✦</span></div>
+
+  <div class="sec-title">§3 · Mitochondrium jako dowód skali — nie wzorzec, lecz argument fizyczny</div>
+
+  <p>Około 1,5 miliarda lat temu praeukariont napotkał alfa-proteobakterię. Miał dwie opcje — i obie były fizycznie możliwe:</p>
+
+  <div class="endo-pair">
+    <div class="endo-half kelipa-h">
+      <span class="endo-label">Opcja A — Eksploatacja · Kelipa</span>
+      <div class="endo-item">Strawić bakterię, pobrać jej energię</div>
+      <div class="endo-item">Koszt wejścia: niski, natychmiastowy</div>
+      <div class="endo-item">Zysk: lokalny, jednorazowy</div>
+      <div class="endo-item">Horyzont: jeden cykl replikacji</div>
+      <div class="endo-item">Wynik: lokalna dominacja w ekosystemie</div>
+      <div class="endo-item">Sufit złożoności: poziom prokariota</div>
+      <div class="endo-outcome">→ Prokariont pozostaje prokariontem.<br>Nigdy nie powstanie komórka mózgowa.</div>
+    </div>
+    <div class="endo-mid"><span class="endo-mid-sym">⟺</span></div>
+    <div class="endo-half endo-h">
+      <span class="endo-label">Opcja B — Integracja · Ĝ</span>
+      <div class="endo-item">Zachować bakterię, zintegrować jej gradient</div>
+      <div class="endo-item">Koszt wejścia: wysoki (budowa interfejsu)</div>
+      <div class="endo-item">Zysk: odroczony o pokolenia</div>
+      <div class="endo-item">Horyzont: setki milionów lat</div>
+      <div class="endo-item">Wynik: nowy poziom złożoności</div>
+      <div class="endo-item">Sufit złożoności: nieograniczony przez rekurencję</div>
+      <div class="endo-outcome">→ Powstaje eukariot. Po 1,5 mld lat —<br>mózg zdolny do tej refleksji.</div>
+    </div>
+  </div>
+
+  <p>Tu niezbędna jest precyzyjna korekta framingu: <strong style="color:var(--gold)">mitochondrium nie jest wzorcem dla człowieka.</strong> Człowiek nie chce być funkcjonalną częścią układu. Człowiek chce decydować, działać, żyć własnym życiem — i ma do tego pełne prawo. To nie jest problem TERJ.</p>
+
+  <p>Mitochondrium jest <em class="gp">dowodem fizycznym</em> działającym na zupełnie innym poziomie abstrakcji:</p>
+
+  <blockquote class="gold"><p>Struktury zdolne do współpracy, gdy napotkają właściwą architekturę, nie tylko przeżywają — stają się fundamentem nowego poziomu złożoności niedostępnego żadną ścieżką eksploatacji, bez względu na jej wyrafinowanie. To jest twierdzenie o skali i czasie. Nie o cnocie i służbie.</p></blockquote>
+
+  <p>Praeukariont, który strawił bakterię, był lokalnym zwycięzcą swojego ekosystemu. Praeukariont, który ją zintegrował, stał się przodkiem każdego mózgu, który kiedykolwiek myślał — <em>włącznie z mózgiem psychomanipulatora czytającego Greene'a</em>. Kelipa żyje z dziedzictwa epoki, w której ktoś zrezygnował z natychmiastowego zysku i wybrał integrację.</p>
+
+  <div class="snote"><p>Mitochondrium zachowuje własne DNA — odrębny genom, który po 1,5 miliarda lat symbiozy nadal nosi ślad podmiotowości, którą integracja uszanowała zamiast skonsumować. Komórka eukariotyczna nie wchłonęła bakterii — zawarła z nią układ, który trwa do dziś w każdej żywej komórce Czytającego te słowa.<sup class="kx-fn">⁴</sup></p></div>
+
+  <div class="div-kx"><span>✦</span></div>
+
+  <div class="sec-title">§4 · Paradoks mózgu — defektorzy z teorii gier</div>
+
+  <p>Ewolucja drogą endosymbiozy wyprodukowała mózg zdolny do rozumienia teorii gier. Ten sam mózg — wynik 1,5 miliarda lat integracji gradientów zamiast ich konsumpcji — na poziomie społecznym systematycznie wybiera defektację.</p>
+
+  <div class="brain-box">
+    <p style="font-size:.95rem;color:var(--text-mid);line-height:1.78;margin-bottom:.9rem;">W dylemacie więźnia: mitochondrium <strong style="color:var(--teal)">nie defektuje</strong> — jest do tego niezdolne strukturalnie. Współpraca jest zakodowana w architekturze. Człowiek z mózgiem <strong style="color:var(--rose)">rozumie</strong>, że współpraca jest optymalna długoterminowo. I <strong style="color:var(--rose)">defektuje</strong> — bo horyzont optymalizacji Kelipa jest krótszy niż cykl degradacji, który uruchamia.</p>
+    <p style="font-size:.95rem;color:var(--text-mid);line-height:1.78;margin-bottom:.9rem;">Kelipa nie pokonuje Ĝ argumentem. <em style="color:var(--rose)">Pokonuje go kompresją czasu.</em> Kredyt, presja przeżycia, korupcja strukturalna — wszystko to skraca horyzont decyzji do punktu, gdzie defektacja jest lokalnie racjonalna. I ktoś, kto był człowiekiem-Ĝ, budującym architekturę przepływów — po wystarczającym wyczerpaniu wchodzi w logikę systemu, który go wyczerpał. Nie z moralnej słabości. Z termodynamicznej konieczności przeżycia.</p>
+    <p style="font-size:.95rem;color:var(--text-mid);line-height:1.78;margin:0;">Szczególnie groźna jest postać <strong style="color:var(--rose)">Kelipa z wiedzą Ĝ</strong>: były człowiek-Ĝ, który rozpoznał mechanizm eksploatacji i zamiast transcendować system — wszedł w niego z pełną wiedzą architekta. On wie, gdzie są mosty zaufania. Wie, kto jest następnym gradientem. Narzędzia Greene'a w jego rękach to nie abstrakcja — to mapa terenu, który sam kiedyś budował.<sup class="kx-fn">⁵</sup></p>
+  </div>
+
+  <div class="fbox" data-label="Kompresja horyzontu · TERJ">
+    $$\tau_{Kelipa} \ll \tau_{\text{degradacji}}$$
+    <span class="fcomment">Horyzont optymalizacji środowiska eksploatującego jest strukturalnie krótszy niż cykl degradacji, który uruchamia. Stąd lokalnie racjonalna decyzja bywa globalnie katastrofalna — a układ dysypatywny nie ma wbudowanego mechanizmu korekty, gdy degradacja jest rozciągnięta w czasie.</span>
+  </div>
+
+  <p>Dziedziczne przekleństwo nie jest przekazem genów — jest przekazem <em class="ke">struktury epistemicznej</em>. Wiedza o architekturze przepływów relacyjnych, przekazana bez zakorzenienia w gradiencie Ĝ, staje się dziedzictwem eksploatacji kolejnych pokoleń. Szkoleniowcy 48 Praw Władzy nie stworzyli złych ludzi — stworzyli <em>próżne naczynia termodynamiczne</em>, które wiedzą, jak wygląda architektura przepływów, ale nie wiedzą, jak ją podtrzymać.</p>
+
+  <div class="discovery-card">
+    <span class="dc-title">Odkrycie strukturalne: Kelipa z wiedzą Ĝ — najgroźniejsza forma korupcji</span>
+    <div class="dc-body">
+      <p style="margin-bottom:.8rem">Kelipa naiwna działa instynktownie. Nie zna architektury, którą eksploatuje — działa przez siłę. Kelipa z wiedzą Ĝ zna ją doskonale — działa przez precyzję. To jest bifurkacja po dekoherencji: człowiek-Ĝ, który doświadczył eksploatacji i rozpoznał mechanizm, stoi na rozwidleniu.</p>
+      <p style="margin-bottom:.8rem">Ścieżka A: integracja wiedzy i zachowanie generatywności (Tikkun — naprawa przez zrozumienie). Ścieżka B: inwersja wiedzy i użycie jej do precyzyjnej eksploatacji następnego gradientu.</p>
+      <div class="dc-formula">Ścieżka B → wiedza Ĝ + motywacja Kelipa = maksymalna destrukcja minimalnym kosztem własnym · dziedzictwo przekazywane dalej</div>
+    </div>
+  </div>
+
+  <div class="div-kx"><span>✦</span></div>
+
+  <div class="sec-title">§5 · Barbarzyńska konsumpcja — argument z asymetrii czasów</div>
+
+  <p>Barbarzyński konsument bez mózgu — w sensie termodynamicznym — nie jest głupi. Jest krótkowzroczny strukturalnie. Jego horyzont optymalizacji jest krótszy niż cykl degeneracji, który uruchamia. Zjada las i umiera z głodu. Zjada zaufanie i umiera w izolacji. Zjada gradienty Ĝ i zostaje z układem bez źródeł porządku.</p>
+
+  <p>Psychomanipulator z 48 Prawami Władzy jest bardziej wyrafinowany — ale nie przekracza tego sufitu. Konsumuje sprawniej. Nie generuje nowego poziomu złożoności, tylko efektywniej eksploatuje istniejący. I wcześniej czy później napotyka granicę: środowisko, z którego czerpał, degeneruje się poniżej punktu, z którego nie można wstać.</p>
+
+  <div class="scale-tbl">
+    <div class="sth">
+      <span>Skala czasu</span><span>Strategia</span>
+      <span>Wynik krótkoterminowy</span><span>Wynik długoterminowy</span>
+    </div>
+    <div class="str">
+      <div class="sc">1 cykl</div>
+      <div class="se">Eksploatacja / Kelipa</div>
+      <div class="sm">Lokalna dominacja, zysk natychmiastowy</div>
+      <div class="sg">Wyczerpanie źródła, degradacja środowiska</div>
+    </div>
+    <div class="str">
+      <div class="sc">10 pokoleń</div>
+      <div class="se">Eksploatacja z propagacją</div>
+      <div class="sm">Szeroka zarażoność struktury społecznej</div>
+      <div class="sg">Rozpad architektury, utrata zdolności do innowacji</div>
+    </div>
+    <div class="str">
+      <div class="sc">100 pokoleń</div>
+      <div class="se">Integracja / Ĝ</div>
+      <div class="sm">Lokalne koszty, wolniejszy wzrost</div>
+      <div class="sg">Architektura przepływów zdolna do generowania nowych poziomów złożoności</div>
+    </div>
+    <div class="str">
+      <div class="sc">1 mld lat</div>
+      <div class="se">Endosymbioza biologiczna</div>
+      <div class="sm">Prokariont-integrator ponosi koszty interfejsu</div>
+      <div class="sg">Eukariot, narządy, mózg. Prokariont-drapieżnik pozostaje prokariontem.</div>
+    </div>
+  </div>
+
+  <div class="div-kx"><span>✦</span></div>
+
+  <div class="sec-title">§6 · Nadzieja skalarna</div>
+
+  <p>TERJ musi odpowiedzieć na pytanie, które wynika z całej analizy: jeśli Kelipa propaguje się szybciej niż Ĝ, jeśli korupcja strukturalna jest zaraźliwa, jeśli człowiek-Ĝ stoi na bifurkacji i najczęściej wchodzi w logikę systemu, który go wyczerpał — co pozostaje?</p>
+
+  <p>Odpowiedź nie jest sentymentalna. Jest termodynamiczna.</p>
+
+  <div class="scalar-hope">
+    <p>Środowiska Kelipa wyczerpują swoje gradienty i degenerują — nie do poprzedniego stanu, lecz poniżej niego, bo niszczyły architekturę, której samodzielnie nie odtworzą. Struktury zdolne do współpracy — jeśli przetrwają wystarczająco długo lub zbudują właściwą architekturę wzajemną — napotykają punkt bifurkacji, w którym ich złożoność staje się fundamentem nowego poziomu. Nadzieja TERJ nie jest moralna. Jest skalarna.</p>
+  </div>
+
+  <p>Mitochondrium nie czekało na sprawiedliwość. Nie negocjowało warunków. Ono po prostu było strukturą zdolną do integracji — i gdy napotkało właściwą architekturę, stało się fundamentem świata, który nawet nie podejrzewał, że jest możliwy.</p>
+
+  <p>Człowiek-Ĝ, który rozumie mechanizm i mimo to buduje architekturę przepływów zamiast wchodzić w logikę eksploatacji — nie czyni tego z naiwności. Czyni to z rozumienia skali. Środowisko Kelipa jest dominujące krótkoterminowo. W skali pokoleń — jest ślepą uliczką bez wyjścia. Struktury zdolne do współpracy nie są słabe. One operują na innym horyzoncie czasowym niż ten, który Kelipa potrafi zobaczyć.</p>
+
+  <blockquote class="gold"><p>Wampir zjada człowieka-Ĝ. Myśli, że wygrał. Ale zjadł mitochondrium — fundament złożoności, której sam jest produktem. W tej samej chwili, gdy konsumuje źródło swojego porządku, uruchamia nieodwracalny cykl degradacji ku entropii, której nie potrafi cofnąć. I w tej samej chwili — gdzie indziej, w innym środowisku — dwa gradienty zamiast się eksploatować, próbują się zintegrować.</p></blockquote>
+
+  <div class="pull-dark">
+    <p>Nie wiemy, który z nich był pierwszy. Wiemy, który przetrwał wystarczająco długo, by stać się fundamentem wszystkiego, co widzi i myśli.</p>
+  </div>
+
+  <div class="fn-kx">
+    <span class="fnkx-label">Przypisy — Rozdział X</span>
+    <div class="fnkx-item"><span class="fnkx-num">¹</span><span class="fnkx-text">Prigogine, I., Stengers, I. (1984). <em>Order Out of Chaos</em>. Bantam. Układy dysypatywne istnieją wyłącznie przez ciągły przepływ energii. Eliminacja źródła gradientu jest termodynamicznie równoznaczna z likwidacją warunków istnienia struktury.</span></div>
+    <div class="fnkx-item"><span class="fnkx-num">²</span><span class="fnkx-text">Druga zasada termodynamiki w sformułowaniu Clausiusa: entropia izolowanego układu rośnie nieodwracalnie. Zniszczony gradient relacyjny — kapitał społeczny, zaufanie, architektura współpracy — jest nieodwracalnie rozproszony bez zewnętrznego wkładu energetycznego.</span></div>
+    <div class="fnkx-item"><span class="fnkx-num">³</span><span class="fnkx-text">Anderson, P.W. (1972). More is Different. <em>Science</em> 177. Emergencja jako niezmienniczość skalowania reguł generujących — matematyczna podstawa różnicy między złożonością logarytmiczną (pasożyt) a wykładniczą (kooperant). Por. Wilson, K.G. (1983). Renormalizacja i zjawiska krytyczne.</span></div>
+    <div class="fnkx-item"><span class="fnkx-num">⁴</span><span class="fnkx-text">Margulis, L. (1981). <em>Symbiosis in Cell Evolution</em>. Freeman. Mitochondria zachowują własny genom rybosomowy — bezpośredni dowód, że endosymbioza była integracją podmiotu, nie konsumpcją składnika. Mitochondrialny DNA jest odrębny od jądrowego we wszystkich eukariotach.</span></div>
+    <div class="fnkx-item"><span class="fnkx-num">⁵</span><span class="fnkx-text">Axelrod, R. (1984). <em>The Evolution of Cooperation</em>. Basic Books. W symulacjach turniejów dylematu więźnia strategie oparte na współpracy z pamięcią (tit-for-tat) dominują w długich seriach, ale przegrywają z defektorem w krótkich. Kluczem jest horyzont czasowy, nie siła moralna. Por. Greene, R. (1998). <em>The 48 Laws of Power</em>. Viking — skodyfikowana Kelipa bez etyki termodynamicznej.</span></div>
+  </div>
+</section>
+"""
+
+def apply_patch(html_content):
+    """Apply all Chapter X additions to existing HTML content."""
+    # 1. Add CSS before </style>
+    html_content = html_content.replace('</style>', CSS_X + '\n</style>', 1)
+    
+    # 2. Add nav link after the fraktal nav link
+    html_content = html_content.replace(
+        '<a href="#fraktal" style="color:var(--teal)">Fraktal·Ĝ ✦</a>',
+        '<a href="#fraktal" style="color:var(--teal)">Fraktal·Ĝ ✦</a>' + NAV_ADDITION
+    )
+    
+    # 3. Add chapter X before back-matter section
+    html_content = html_content.replace(
+        '\n<section id="back-matter"',
+        CHAPTER_X + '\n<section id="back-matter"'
+    )
+    
+    # 4. Update JavaScript NAV_SEC
+    html_content = html_content.replace(
+        "const NAV_SEC=['bereshit','proznia','demon','yhwh-entropia','ontologia','termodynamika','mysl','yhwh','postulat','fraktal'];",
+        "const NAV_SEC=['bereshit','proznia','demon','yhwh-entropia','ontologia','termodynamika','mysl','yhwh','postulat','fraktal','kelipa-eksploatacja'];"
+    )
+    
+    # 5. Update bib entries — add Chapter X references
+    BIB_ADDITION = """
+    <p class="bib-entry">Axelrod, R. (1984). <em>The Evolution of Cooperation</em>. Basic Books.</p>
+    <p class="bib-entry">Margulis, L. (1981). <em>Symbiosis in Cell Evolution</em>. W.H. Freeman.</p>"""
+    
+    html_content = html_content.replace(
+        '<p class="bib-entry">Anderson, P.W. (1972). More is Different.',
+        BIB_ADDITION + '\n    <p class="bib-entry">Anderson, P.W. (1972). More is Different.'
+    )
+    
+    return html_content
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Użycie: python3 TERJ_chapter_X_patch.py <plik_terj.html>")
+        print("Wynik zapisany do: <plik_terj>_v2.html")
+        sys.exit(1)
+    
+    input_file = sys.argv[1]
+    output_file = input_file.replace('.html', '_z_rozdzialem_X.html')
+    if output_file == input_file:
+        output_file = input_file + '_v2.html'
+    
+    with open(input_file, 'r', encoding='utf-8') as f:
+        original = f.read()
+    
+    modified = apply_patch(original)
+    
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(modified)
+    
+    print(f"✓ Plik zaktualizowany: {output_file}")
+    print(f"  Dodano: CSS rozdziału X ({len(CSS_X)} znaków)")
+    print(f"  Dodano: Link nawigacyjny 'Kelipa·Ĝ'")
+    print(f"  Dodano: Rozdział X ({len(CHAPTER_X)} znaków)")
+    print(f"  Zaktualizowano: NAV_SEC w JavaScript")
+    print(f"  Dodano: Referencje bibliograficzne (Margulis, Axelrod)")

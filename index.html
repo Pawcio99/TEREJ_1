@@ -1,323 +1,1294 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-TERJ · Rozdział X — Patcher
-Zastosuj: python3 TERJ_chapter_X_patch.py twoj_plik_terj.html
-Lub bez argumentu — patch zostanie wyświetlony jako diff
-"""
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relacyjność jako fundament istnienia — TERJ · Wydanie zintegrowane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=JetBrains+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'$',right:'$',display:false}
+  ],throwOnError:false});"></script>
+<style>
+:root {
+  --void:#030609;--ink:#070d1a;--deep:#0c1428;--surface:#111d35;--panel:#162040;
+  --border:rgba(160,185,255,0.10);--border-gold:rgba(210,175,100,0.22);
+  --gold:#d4a854;--gold-bright:#f0c878;--gold-dim:#7a6030;--amber:#c8843a;
+  --blue:#6ab4f5;--blue-dim:#3a6898;--teal:#52d0b0;--teal-dim:#256050;
+  --violet:#9b84e8;--violet-dim:#4a3880;--rose:#e07878;--rose-dim:#6a2828;
+  --text:#cdd8f0;--text-mid:#8898c0;--text-mute:#485578;--hebrew:#eed8a8;
+  --gold-terj:#8a6a1a;--gold-terj-dim:#b08a30;--amber-terj:#a0700a;
+  --panel-terj:rgba(250,247,242,0.05);--border-terj:rgba(140,100,30,0.25);
+  --font-body:'EB Garamond',Georgia,serif;--font-title:'Cinzel',serif;
+  --font-deco:'Cinzel Decorative',serif;--font-mono:'JetBrains Mono',monospace;
+  --font-mono2:'Share Tech Mono',monospace;--font-play:'Playfair Display',Georgia,serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:18px;}
+body{background:var(--void);color:var(--text);font-family:var(--font-body);line-height:1.9;overflow-x:hidden;}
+#bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold-dim),var(--amber),var(--gold-dim));width:0;z-index:9000;box-shadow:0 0 8px rgba(200,168,75,0.5);transition:width 0.1s;}
+#bg-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;gap:0;background:rgba(3,6,9,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:52px;padding:0 2rem;font-family:var(--font-title);font-size:0.56rem;letter-spacing:0.16em;}
+.nav-logo{color:var(--gold);margin-right:auto;font-family:var(--font-deco);font-size:0.62rem;letter-spacing:0.22em;}
+nav a{color:var(--text-mute);text-decoration:none;padding:0 0.75rem;height:52px;display:flex;align-items:center;border-right:1px solid var(--border);transition:all 0.2s;white-space:nowrap;font-size:0.54rem;}
+nav a:first-of-type{border-left:1px solid var(--border);}
+nav a:hover{color:var(--gold);background:rgba(212,168,84,0.06);}
+nav a.active{color:var(--gold);}
+#hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 2rem 5rem;overflow:hidden;}
+.hero-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.ring{position:absolute;border-radius:50%;border:1px solid;animation:ring-pulse 8s ease-in-out infinite;}
+.ring:nth-child(1){width:260px;height:260px;border-color:rgba(210,175,100,0.20);animation-delay:0s;}
+.ring:nth-child(2){width:420px;height:420px;border-color:rgba(160,185,255,0.12);animation-delay:1.8s;}
+.ring:nth-child(3){width:600px;height:600px;border-color:rgba(160,185,255,0.07);animation-delay:3.6s;}
+.ring:nth-child(4){width:800px;height:800px;border-color:rgba(100,140,220,0.04);animation-delay:5.4s;}
+@keyframes ring-pulse{0%,100%{opacity:.3;transform:scale(.97);}50%{opacity:1;transform:scale(1.03);}}
+.hero-label{font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.3em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:2.5rem;}
+.hero-hebrew-main{font-size:clamp(2.2rem,6vw,4.5rem);color:var(--hebrew);direction:rtl;letter-spacing:0.18em;line-height:1.3;margin-bottom:0.6rem;text-shadow:0 0 60px rgba(238,216,168,0.3);}
+.hero-translit{font-family:var(--font-mono);font-size:0.72rem;color:var(--gold-dim);letter-spacing:0.2em;margin-bottom:2.5rem;}
+.hero-title{font-family:var(--font-deco);font-size:clamp(1.4rem,4vw,3rem);color:#fff;font-weight:400;line-height:1.25;margin-bottom:1rem;text-shadow:0 0 80px rgba(106,180,245,0.25);}
+.hero-subtitle{font-size:clamp(0.95rem,2vw,1.2rem);color:var(--text-mid);font-style:italic;max-width:640px;margin:0 auto 3rem;font-weight:400;line-height:1.75;}
+.scroll-cue{font-family:var(--font-title);font-size:0.6rem;letter-spacing:0.3em;color:var(--text-mute);cursor:pointer;animation:breathe 3s ease-in-out infinite;}
+.scroll-cue span{display:block;font-size:1.1rem;margin-top:0.4rem;}
+@keyframes breathe{0%,100%{opacity:.35}50%{opacity:.9}}
+@keyframes dot-blink{0%,100%{opacity:.4}50%{opacity:1}}
+main{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:0 1.8rem 8rem;}
+.chapter{margin-top:6rem;scroll-margin-top:70px;opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s ease;}
+.chapter.visible{opacity:1;transform:none;}
+.ch-meta{display:flex;align-items:center;gap:1rem;margin-bottom:0.8rem;}
+.ch-num{font-family:var(--font-mono);font-size:0.58rem;letter-spacing:0.25em;color:var(--gold-dim);background:rgba(212,168,84,0.08);border:1px solid var(--border-gold);padding:0.2rem 0.7rem;border-radius:3px;white-space:nowrap;}
+.ch-tag{font-family:var(--font-mono);font-size:0.56rem;letter-spacing:0.2em;color:var(--text-mute);}
+.ch-title{font-family:var(--font-deco);font-size:clamp(1.3rem,3.5vw,2.2rem);font-weight:400;color:#dde8ff;line-height:1.2;margin-bottom:0.4rem;}
+.ch-sub{font-size:0.95rem;font-style:italic;color:var(--text-mute);padding-bottom:1.8rem;border-bottom:1px solid var(--border);margin-bottom:2rem;}
+.sec-title{font-family:var(--font-title);font-size:0.88rem;letter-spacing:0.15em;color:var(--gold);margin:3.2rem 0 1.2rem;padding-left:1.2rem;border-left:2px solid var(--gold-dim);line-height:1.5;}
+p{margin-bottom:1.5rem;}
+.lead{font-size:1.15rem;line-height:2;color:#bbc8e8;font-weight:400;}
+em{color:var(--gold);font-style:italic;}
+.hl-teal{color:var(--teal);}
+.hl-blue{color:var(--blue);}
+.hl-violet{color:var(--violet);}
+.hl-rose{color:var(--rose);}
+.italic{font-style:italic;color:var(--text-mid);}
+sup.fn{font-family:var(--font-mono);font-size:0.58rem;color:var(--blue-dim);vertical-align:super;margin-left:1px;}
+blockquote{margin:2.8rem 0;padding:2rem 2.4rem;background:rgba(155,132,232,0.05);border-left:3px solid var(--violet-dim);border-radius:0 10px 10px 0;position:relative;}
+blockquote::before{content:'\201C';position:absolute;top:-0.8rem;left:1.8rem;font-size:5rem;color:var(--violet-dim);opacity:.35;font-family:Georgia,serif;line-height:1;pointer-events:none;}
+blockquote p{font-size:1.08rem;font-style:italic;color:#aabbdd;margin:0;line-height:1.85;}
+blockquote cite{display:block;margin-top:0.9rem;font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.1em;color:var(--text-mute);font-style:normal;}
+blockquote.gold{background:rgba(212,168,84,0.05);border-left-color:var(--gold-dim);}
+blockquote.gold::before{color:var(--gold-dim);}
+blockquote.gold p{color:#d4c898;}
+blockquote.amber{background:rgba(160,120,40,0.07);border-left:2px solid rgba(138,106,26,0.6);padding:1.2rem 0 1.2rem 2rem;border-radius:0;}
+blockquote.amber::before{content:none;}
+blockquote.amber p{font-family:var(--font-play);font-style:italic;font-size:1.1rem;color:var(--amber);line-height:1.6;}
+.heb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;margin:2rem 0;}
+.hcard{background:rgba(238,216,168,0.04);border:1px solid var(--border-gold);border-radius:10px;padding:1.5rem 1.3rem;position:relative;overflow:hidden;transition:transform .2s,background .2s;}
+.hcard:hover{transform:translateY(-3px);background:rgba(238,216,168,0.07);}
+.hcard::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.hcard-heb{font-size:2.4rem;color:var(--hebrew);direction:rtl;display:block;line-height:1.2;margin-bottom:0.4rem;}
+.hcard-tr{font-family:var(--font-mono);font-size:0.68rem;color:var(--gold);letter-spacing:0.18em;display:block;margin-bottom:0.3rem;}
+.hcard-root{font-family:var(--font-mono);font-size:0.58rem;color:var(--text-mute);display:block;margin-bottom:0.9rem;}
+.hcard-def{font-size:0.88rem;color:var(--text-mid);line-height:1.6;}
+.op-pair{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin:2.2rem 0;}
+@media(max-width:560px){.op-pair{grid-template-columns:1fr;}}
+.opcard{border-radius:12px;padding:1.8rem 1.5rem;position:relative;overflow:hidden;}
+.opcard.plus{background:rgba(82,208,176,0.07);border:1px solid rgba(82,208,176,0.25);}
+.opcard.minus{background:rgba(224,120,120,0.07);border:1px solid rgba(224,120,120,0.25);}
+.op-sym{font-family:var(--font-mono);font-size:2.4rem;font-weight:300;display:block;margin-bottom:0.5rem;}
+.opcard.plus .op-sym{color:var(--teal);}
+.opcard.minus .op-sym{color:var(--rose);}
+.op-nm{font-family:var(--font-title);font-size:0.7rem;letter-spacing:0.15em;display:block;margin-bottom:0.9rem;}
+.opcard.plus .op-nm{color:var(--teal);}
+.opcard.minus .op-nm{color:var(--rose);}
+.op-body{font-size:0.88rem;color:var(--text-mid);line-height:1.65;}
+.formula{margin:2.2rem 0;padding:1.4rem 2rem;background:rgba(10,18,45,0.85);border:1px solid rgba(106,180,245,0.2);border-radius:8px;text-align:center;font-family:var(--font-mono);font-size:0.95rem;color:#b0c8f8;letter-spacing:0.04em;position:relative;line-height:1.8;}
+.formula-lbl{position:absolute;top:-0.65rem;left:1.5rem;font-size:0.55rem;letter-spacing:0.22em;background:var(--ink);padding:0 0.7rem;color:var(--blue-dim);font-family:var(--font-title);text-transform:uppercase;}
+.fbox{background:rgba(12,20,42,0.9);border:1px solid var(--border-terj);border-left:3px solid var(--gold-terj);padding:1.4rem 1.6rem;margin:2rem 0;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(140,100,30,0.1);}
+.fbox::before{content:attr(data-label);position:absolute;top:-1px;right:1rem;font-family:var(--font-mono2);font-size:0.52rem;letter-spacing:0.2em;color:var(--gold-terj-dim);text-transform:uppercase;background:rgba(12,20,42,0.9);padding:0 0.5rem;}
+.fbox .katex-display{margin:0;text-align:left;}
+.fbox .katex-display>.katex{color:var(--gold);font-size:1.0rem;}
+.fbox .katex{color:var(--gold);}
+.fbox .fcomment{display:block;margin-top:0.9rem;font-size:0.82rem;color:var(--text-mid);font-family:var(--font-body);font-style:italic;line-height:1.5;}
+.snote{background:rgba(26,110,138,0.06);border:1px solid rgba(26,110,138,0.22);padding:1.2rem 1.5rem;margin:2rem 0;border-radius:4px;}
+.snote::before{content:'nota naukowa';font-family:var(--font-mono2);font-size:0.52rem;letter-spacing:0.2em;color:var(--blue);text-transform:uppercase;display:block;margin-bottom:0.5rem;}
+.snote p{font-size:0.92rem;color:var(--text-mid);margin:0;text-align:left;}
+.viz-wrap{margin:2.8rem 0;background:rgba(7,13,26,0.85);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.viz-head{padding:0.9rem 1.5rem;border-bottom:1px solid var(--border);font-family:var(--font-title);font-size:0.65rem;letter-spacing:0.2em;color:var(--gold-dim);text-transform:uppercase;display:flex;align-items:center;gap:0.8rem;}
+.viz-head::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold-dim);animation:dot-blink 2s ease-in-out infinite;}
+.viz-body{padding:1.2rem 1.5rem 1.5rem;}
+canvas.viz{width:100%!important;display:block;}
+.iw-tabs{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--border-terj);background:rgba(12,20,42,0.7);}
+.iw-tab{font-family:var(--font-mono2);font-size:0.56rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-mute);background:none;border:none;padding:0.7rem 1.1rem;cursor:pointer;border-bottom:2px solid transparent;position:relative;top:1px;transition:color .2s;}
+.iw-tab:hover{color:var(--gold-dim);}
+.iw-tab.on{color:var(--gold);border-bottom-color:var(--gold);}
+.iw-stack{position:relative;}
+.iw-panel:not(.on){display:none;}
+.iw-svg{display:block;width:100%;background:rgba(12,20,40,0.8);border:1px solid var(--border-terj);border-bottom:none;}
+.iw-ctrl{display:flex;flex-wrap:wrap;gap:1.4rem;padding:1.1rem 1.4rem;background:rgba(10,16,36,0.7);border:1px solid var(--border-terj);border-top:none;border-bottom:none;}
+.iw-c{display:flex;flex-direction:column;gap:.4rem;min-width:110px;flex:1;}
+.iw-cl{font-family:var(--font-mono2);font-size:0.54rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-mute);}
+.iw-cv{font-family:var(--font-mono2);font-size:0.68rem;color:var(--gold);}
+input[type=range]{-webkit-appearance:none;width:100%;height:2px;background:var(--border-terj);cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:var(--gold);border-radius:50%;box-shadow:0 0 5px rgba(138,106,26,.5);}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--gold);border-radius:50%;border:none;}
+.iw-desc{font-style:italic;font-size:0.84rem;color:var(--text-mid);background:rgba(10,16,36,0.7);padding:0.9rem 1.4rem;border:1px solid var(--border-terj);border-top:none;line-height:1.6;}
+.yhwh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:2.5rem 0;border:1px solid var(--border-gold);border-radius:12px;overflow:hidden;}
+@media(max-width:580px){.yhwh-grid{grid-template-columns:repeat(2,1fr);}}
+.yhwh-cell{padding:1.6rem 1.1rem;text-align:center;border-right:1px solid var(--border-gold);background:rgba(212,168,84,.03);transition:background .2s;}
+.yhwh-cell:last-child{border-right:none;}
+.yhwh-cell:hover{background:rgba(212,168,84,.08);}
+.yhwh-letter{font-family:var(--font-deco);font-size:2.8rem;color:var(--hebrew);display:block;margin-bottom:0.4rem;direction:rtl;}
+.yhwh-name{font-family:var(--font-title);font-size:0.6rem;letter-spacing:0.18em;color:var(--gold);display:block;margin-bottom:0.5rem;}
+.yhwh-pict{font-size:1.5rem;display:block;margin-bottom:0.4rem;}
+.yhwh-meaning{font-size:0.82rem;color:var(--text-mid);line-height:1.5;}
+.yhwh-op{font-family:var(--font-mono);font-size:0.7rem;color:var(--teal);display:block;margin-top:0.4rem;}
+.yhwh-arrow{display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.72rem;color:var(--text-mute);gap:0.4rem;flex-wrap:wrap;margin:1rem 0;letter-spacing:0.05em;}
+.yhwh-arrow span.op{color:var(--teal);font-size:0.88rem;}
+.hayah-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:2rem 0;}
+@media(max-width:600px){.hayah-grid{grid-template-columns:1fr;}}
+.hayah-card{border-radius:10px;padding:1.5rem 1.2rem;text-align:center;position:relative;overflow:hidden;}
+.hayah-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.hayah-card.past{background:rgba(160,120,40,0.08);border:1px solid rgba(160,120,40,0.3);}
+.hayah-card.past::before{background:linear-gradient(90deg,transparent,var(--amber),transparent);}
+.hayah-card.pres{background:rgba(82,208,176,0.07);border:1px solid rgba(82,208,176,0.3);}
+.hayah-card.pres::before{background:linear-gradient(90deg,transparent,var(--teal),transparent);}
+.hayah-card.fut{background:rgba(106,180,245,0.07);border:1px solid rgba(106,180,245,0.3);}
+.hayah-card.fut::before{background:linear-gradient(90deg,transparent,var(--blue),transparent);}
+.hayah-heb{font-size:2.2rem;color:var(--hebrew);direction:rtl;display:block;margin-bottom:0.3rem;}
+.hayah-form{font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.15em;display:block;margin-bottom:0.4rem;}
+.hayah-card.past .hayah-form{color:var(--amber);}
+.hayah-card.pres .hayah-form{color:var(--teal);}
+.hayah-card.fut .hayah-form{color:var(--blue);}
+.hayah-meaning{font-size:0.84rem;color:var(--text-mid);line-height:1.5;}
+.hayah-thermo{font-family:var(--font-mono);font-size:0.68rem;margin-top:0.5rem;display:block;}
+.hayah-card.past .hayah-thermo{color:var(--amber);}
+.hayah-card.pres .hayah-thermo{color:var(--teal);}
+.hayah-card.fut .hayah-thermo{color:var(--blue);}
+.discovery-card{margin:2.5rem 0;padding:1.8rem 2rem;background:rgba(155,132,232,0.07);border:1px solid rgba(155,132,232,0.25);border-radius:12px;position:relative;overflow:hidden;}
+.discovery-card::before{content:'odkrycie semantyczne';position:absolute;top:-1px;left:1.5rem;font-family:var(--font-mono2);font-size:0.52rem;letter-spacing:0.2em;color:rgba(155,132,232,0.7);text-transform:uppercase;background:var(--ink);padding:0 0.6rem;}
+.discovery-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--violet),transparent);}
+.dc-title{font-family:var(--font-title);font-size:0.8rem;letter-spacing:0.15em;color:var(--violet);margin-bottom:1rem;display:block;}
+.dc-body{font-size:0.92rem;color:var(--text-mid);line-height:1.7;}
+.dc-formula{font-family:var(--font-mono);font-size:0.88rem;color:#c0b0f8;text-align:center;margin:1rem 0;padding:0.8rem;background:rgba(10,18,45,0.8);border-radius:6px;border:1px solid rgba(155,132,232,0.2);}
+.map-table{width:100%;border-collapse:collapse;margin:2.5rem 0;font-size:0.9rem;}
+.map-table th{font-family:var(--font-title);font-size:0.6rem;letter-spacing:0.2em;color:var(--gold);text-align:left;padding:0.8rem 1rem;border-bottom:1px solid rgba(212,168,84,0.3);background:rgba(212,168,84,0.04);}
+.map-table td{padding:1rem;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;}
+.map-table tr:hover td{background:rgba(106,180,245,0.03);}
+.mt-h{font-size:1.2rem;color:var(--hebrew);direction:rtl;}
+.mt-t{font-family:var(--font-mono);font-size:0.68rem;color:var(--gold-dim);}
+.mt-d{font-size:0.85rem;}
+.mt-d.teal{color:var(--teal);}
+.mt-d.mute{color:var(--text-mid);}
+.ext-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin:2.5rem 0;}
+.ext-card{display:block;text-decoration:none;background:rgba(58,104,152,0.08);border:1px solid rgba(106,180,245,0.18);border-radius:10px;padding:1.3rem 1.5rem;transition:all .2s;}
+.ext-card:hover{background:rgba(58,104,152,0.16);border-color:rgba(106,180,245,0.4);transform:translateY(-2px);}
+.ext-lbl{font-family:var(--font-mono);font-size:0.58rem;letter-spacing:0.22em;color:var(--blue-dim);text-transform:uppercase;display:block;margin-bottom:0.4rem;}
+.ext-title{font-family:var(--font-title);font-size:0.85rem;color:var(--blue);display:block;margin-bottom:0.35rem;}
+.ext-desc{font-size:0.82rem;color:var(--text-mute);line-height:1.55;}
+.sacrifice-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin:2rem 0;}
+@media(max-width:540px){.sacrifice-grid{grid-template-columns:1fr;}}
+.sac-card{border-radius:10px;padding:1.5rem 1.4rem;border:1px solid;position:relative;overflow:hidden;}
+.sac-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sac-card.open{background:rgba(82,208,176,.06);border-color:rgba(82,208,176,.3);}
+.sac-card.open::before{background:linear-gradient(90deg,transparent,var(--teal),transparent);}
+.sac-card.closed{background:rgba(224,120,120,.06);border-color:rgba(224,120,120,.3);}
+.sac-card.closed::before{background:linear-gradient(90deg,transparent,var(--rose),transparent);}
+.sac-title{font-family:var(--font-title);font-size:0.72rem;letter-spacing:0.14em;display:block;margin-bottom:0.7rem;}
+.sac-card.open .sac-title{color:var(--teal);}
+.sac-card.closed .sac-title{color:var(--rose);}
+.sac-item{display:flex;align-items:baseline;gap:0.5rem;font-size:0.82rem;color:var(--text-mid);line-height:1.55;margin-bottom:0.35rem;}
+.sac-item::before{content:'·';flex:0 0 auto;}
+.sac-card.open .sac-item::before{color:var(--teal);}
+.sac-card.closed .sac-item::before{color:var(--rose);}
+.sac-verdict{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.08em;margin-top:1rem;padding:0.5rem 0.7rem;border-radius:5px;}
+.sac-card.open .sac-verdict{background:rgba(82,208,176,.1);color:var(--teal);}
+.sac-card.closed .sac-verdict{background:rgba(224,120,120,.1);color:var(--rose);}
+.tesh-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin:2rem 0;}
+@media(max-width:600px){.tesh-grid{grid-template-columns:1fr;}}
+.tesh-card{border-radius:10px;padding:1.4rem 1.2rem;border:1px solid var(--border);text-align:center;}
+.tesh-card.a{background:rgba(82,208,176,0.07);border-color:rgba(82,208,176,0.25);}
+.tesh-card.b{background:rgba(212,168,84,0.06);border-color:var(--border-gold);}
+.tesh-card.c{background:rgba(224,120,120,0.07);border-color:rgba(224,120,120,0.25);}
+.tesh-ref{font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.15em;margin-bottom:0.5rem;display:block;}
+.tesh-card.a .tesh-ref{color:var(--teal);}
+.tesh-card.b .tesh-ref{color:var(--gold-dim);}
+.tesh-card.c .tesh-ref{color:var(--rose);}
+.tesh-icon{font-size:1.8rem;margin-bottom:0.5rem;display:block;}
+.tesh-title{font-family:var(--font-title);font-size:0.75rem;letter-spacing:0.1em;margin-bottom:0.6rem;display:block;}
+.tesh-card.a .tesh-title{color:var(--teal);}
+.tesh-card.b .tesh-title{color:var(--gold);}
+.tesh-card.c .tesh-title{color:var(--rose);}
+.tesh-body{font-size:0.82rem;color:var(--text-mid);line-height:1.55;}
+.domain-table{width:100%;border-collapse:collapse;margin:2.5rem 0;font-size:0.85rem;}
+.domain-table th{font-family:var(--font-title);font-size:0.58rem;letter-spacing:0.18em;color:var(--gold);text-align:left;padding:0.7rem 0.9rem;border-bottom:1px solid rgba(212,168,84,.3);background:rgba(212,168,84,.04);}
+.domain-table td{padding:0.85rem 0.9rem;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;}
+.domain-table tr:hover td{background:rgba(106,180,245,.04);}
+.dt-domain{color:var(--gold);font-family:var(--font-title);font-size:0.78rem;}
+.dt-space{color:var(--text-mid);font-size:0.82rem;}
+.dt-grad{color:var(--teal);font-size:0.82rem;}
+.dt-canal{color:var(--violet);font-size:0.82rem;}
+.cost-card{background:rgba(212,168,84,.05);border:1px solid var(--border-gold);border-radius:12px;padding:1.8rem 2rem;margin:2rem 0;position:relative;overflow:hidden;}
+.cost-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);}
+.cost-title{font-family:var(--font-title);font-size:0.75rem;letter-spacing:0.15em;color:var(--gold);margin-bottom:0.8rem;display:block;}
+.cost-formula{font-family:var(--font-mono);font-size:0.88rem;color:#c8e0ff;text-align:center;margin:1rem 0;padding:0.8rem;background:rgba(10,18,45,.8);border-radius:6px;border:1px solid rgba(106,180,245,.15);}
+.cost-body{font-size:0.9rem;color:var(--text-mid);line-height:1.7;}
+.phase-row{display:flex;align-items:stretch;gap:0;margin:2rem 0;border-radius:12px;overflow:hidden;border:1px solid var(--border);}
+.phase-block{flex:1;padding:1.6rem 1.4rem;text-align:center;}
+.phase-block.eden{background:rgba(238,216,168,.07);border-right:1px solid var(--border);}
+.phase-block.world{background:rgba(224,120,120,.06);}
+.phase-arrow-col{flex:0 0 52px;display:flex;align-items:center;justify-content:center;background:rgba(10,18,45,.5);border-left:1px solid var(--border);border-right:1px solid var(--border);flex-direction:column;gap:0.3rem;}
+.phase-heb{font-size:2.8rem;direction:rtl;display:block;line-height:1.1;margin-bottom:0.3rem;}
+.phase-block.eden .phase-heb{color:var(--hebrew);}
+.phase-block.world .phase-heb{color:var(--rose);}
+.phase-tr{font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.18em;display:block;margin-bottom:0.3rem;}
+.phase-block.eden .phase-tr{color:var(--gold);}
+.phase-block.world .phase-tr{color:var(--rose);}
+.phase-op{font-family:var(--font-mono);font-size:0.95rem;font-weight:500;display:block;}
+.phase-block.eden .phase-op{color:var(--teal);}
+.phase-block.world .phase-op{color:var(--rose);}
+.phase-def{font-size:0.82rem;color:var(--text-mid);margin-top:0.7rem;line-height:1.55;}
+.phase-arrow-sym{font-size:1.4rem;color:var(--text-mute);}
+.phase-arrow-lbl{font-family:var(--font-mono);font-size:0.5rem;color:var(--text-mute);letter-spacing:0.1em;writing-mode:vertical-rl;text-orientation:mixed;}
+.sym-block{display:flex;align-items:center;gap:0;margin:2.5rem 0;border-radius:12px;overflow:hidden;border:1px solid var(--border);}
+.sym-half{flex:1;padding:1.8rem 1.5rem;text-align:center;}
+.sym-half.eden-sym{background:rgba(238,216,168,.07);border-right:1px solid var(--border);}
+.sym-half.wciel-sym{background:rgba(106,180,245,.06);}
+.sym-label{font-family:var(--font-title);font-size:0.62rem;letter-spacing:0.18em;display:block;margin-bottom:0.6rem;}
+.sym-half.eden-sym .sym-label{color:var(--gold);}
+.sym-half.wciel-sym .sym-label{color:var(--blue);}
+.sym-icon{font-size:2rem;display:block;margin-bottom:0.5rem;}
+.sym-desc{font-size:0.85rem;color:var(--text-mid);line-height:1.6;}
+.sym-op{font-family:var(--font-mono);font-size:0.75rem;display:block;margin-top:0.5rem;}
+.sym-half.eden-sym .sym-op{color:var(--rose);}
+.sym-half.wciel-sym .sym-op{color:var(--teal);}
+.sym-center-col{flex:0 0 60px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,18,45,.6);border-left:1px solid var(--border);border-right:1px solid var(--border);gap:0.4rem;padding:0.5rem 0;}
+.sym-center-sym{font-size:1.6rem;color:var(--gold);}
+.sym-center-lbl{font-family:var(--font-mono);font-size:0.48rem;color:var(--text-mute);letter-spacing:0.08em;writing-mode:vertical-rl;text-orientation:mixed;}
+.div-rune{text-align:center;margin:5rem 0;position:relative;}
+.div-rune::before,.div-rune::after{content:'';position:absolute;top:50%;height:1px;background:linear-gradient(to right,transparent,var(--border));width:35%;}
+.div-rune::before{right:55%;}
+.div-rune::after{left:55%;background:linear-gradient(to left,transparent,var(--border));}
+.div-rune span{font-family:var(--font-deco);font-size:1rem;color:var(--gold-dim);opacity:.5;position:relative;z-index:1;}
+#back-matter{margin-top:6rem;padding-top:3rem;border-top:1px solid var(--border);}
+.bm-title{font-family:var(--font-deco);font-size:1.2rem;color:var(--text-mid);margin-bottom:2rem;}
+.fn-list{list-style:none;}
+.fn-list li{display:grid;grid-template-columns:2.5rem 1fr;gap:0;margin-bottom:1rem;font-size:0.82rem;color:var(--text-mute);line-height:1.65;}
+.fn-list li .fn-n{font-family:var(--font-mono);font-size:0.68rem;color:var(--blue-dim);padding-top:0.1rem;}
+.bib-group{margin:1.8rem 0;}
+.bib-cat{font-family:var(--font-title);font-size:0.65rem;letter-spacing:0.2em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:0.8rem;padding-bottom:0.4rem;border-bottom:1px solid rgba(212,168,84,0.15);}
+.bib-entry{font-size:0.84rem;color:var(--text-mute);margin-bottom:0.55rem;line-height:1.65;padding-left:1.4rem;text-indent:-1.4rem;}
+.bib-entry a{color:var(--blue);text-decoration:none;}
+.bib-entry a:hover{text-decoration:underline;}
+@media(max-width:768px){.hayah-grid{grid-template-columns:1fr;}.yhwh-grid{grid-template-columns:repeat(2,1fr);}.sym-block{flex-direction:column;}.sym-center-col{flex:0 0 40px;flex-direction:row;width:100%;}.sym-center-lbl{writing-mode:horizontal-tb;}}
 
-import sys, re
+/* ══ CHAPTER IX ADDITIONS ══ */
 
-CSS_X = """
-/* ══ CHAPTER X — KORUPCJA TERMODYNAMICZNA ══ */
-.kx-thesis{border-left:3px solid var(--rose-dim);background:rgba(224,120,120,.05);padding:1.5rem 2rem;font-style:italic;color:var(--text-mid);font-size:.96rem;line-height:1.72;margin-bottom:2rem;}
-.kx-thesis .kxt-label{font-family:var(--font-mono);font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--rose-dim);display:block;margin-bottom:.7rem;font-style:normal;}
-sup.kx-fn{font-family:var(--font-mono);font-size:.58rem;color:var(--rose-dim);vertical-align:super;margin-left:1px;cursor:pointer;}
-em.ke{color:var(--rose);font-style:italic;border-bottom:1px dotted var(--rose-dim);}
-em.gp{color:var(--teal);font-style:italic;border-bottom:1px dotted var(--teal-dim);}
-.endo-pair{display:grid;grid-template-columns:1fr auto 1fr;gap:0;margin:2.5rem 0;border-radius:12px;overflow:hidden;border:1px solid var(--border);}
-.endo-half{padding:1.8rem 1.5rem;}
-.endo-half.kelipa-h{background:rgba(224,120,120,.07);}
-.endo-half.endo-h{background:rgba(82,208,176,.07);}
-.endo-mid{display:flex;align-items:center;justify-content:center;padding:0 1rem;background:rgba(10,18,45,.6);border-left:1px solid var(--border);border-right:1px solid var(--border);}
-.endo-mid-sym{font-size:1.8rem;color:var(--gold-dim);}
-.endo-label{font-family:var(--font-title);font-size:.68rem;letter-spacing:.16em;display:block;margin-bottom:.6rem;}
-.endo-half.kelipa-h .endo-label{color:var(--rose);}
-.endo-half.endo-h .endo-label{color:var(--teal);}
-.endo-outcome{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;margin-top:1rem;padding:.45rem .65rem;border-radius:4px;line-height:1.5;}
-.endo-half.kelipa-h .endo-outcome{background:rgba(224,120,120,.1);color:var(--rose);}
-.endo-half.endo-h .endo-outcome{background:rgba(82,208,176,.1);color:var(--teal);}
-.endo-item{display:flex;align-items:baseline;gap:.5rem;font-size:.84rem;color:var(--text-mid);line-height:1.6;margin-bottom:.4rem;}
-.endo-item::before{content:'·';flex-shrink:0;}
-.endo-half.kelipa-h .endo-item::before{color:var(--rose);}
-.endo-half.endo-h .endo-item::before{color:var(--teal);}
-.ceil-proof{margin:2rem 0;border:1px solid rgba(224,120,120,.25);border-left:3px solid var(--rose-dim);background:rgba(224,120,120,.04);border-radius:0 8px 8px 0;padding:1.5rem 1.8rem;}
-.ceil-proof .cp-label{font-family:var(--font-mono);font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--rose-dim);display:block;margin-bottom:.8rem;}
-.brain-box{margin:2.5rem 0;background:rgba(155,132,232,.06);border:1px solid rgba(155,132,232,.2);border-radius:10px;padding:1.8rem 2rem;position:relative;overflow:hidden;}
-.brain-box::before{content:'paradoks kognitywny · TERJ';position:absolute;top:-1px;left:1.5rem;font-family:var(--font-mono);font-size:7.5px;letter-spacing:.22em;color:rgba(155,132,232,.7);text-transform:uppercase;background:var(--ink);padding:0 .6rem;}
-.brain-box::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--violet),transparent);}
-.scalar-hope{margin:2.5rem 0;padding:2rem 2.8rem;background:linear-gradient(135deg,rgba(10,18,45,.96) 0%,rgba(10,26,20,.96) 100%);border:1px solid rgba(82,208,176,.22);border-radius:10px;position:relative;}
-.scalar-hope::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal-dim),transparent);}
-.scalar-hope p{font-family:var(--font-deco);font-size:1.06rem;font-style:italic;font-weight:300;color:rgba(82,208,176,.92);line-height:1.7;text-align:center;margin:0;}
-.div-kx{display:flex;align-items:center;gap:1.5rem;margin:3rem 0;}
-.div-kx::before,.div-kx::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--rose-dim));}
-.div-kx::after{background:linear-gradient(to left,transparent,var(--rose-dim));}
-.div-kx span{font-family:var(--font-deco);font-size:.9rem;color:var(--rose-dim);opacity:.55;}
-.fn-kx{margin-top:2.5rem;padding-top:1.2rem;border-top:1px solid rgba(224,120,120,.2);}
-.fn-kx .fnkx-label{font-family:var(--font-mono);font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--rose-dim);display:block;margin-bottom:.7rem;}
-.fn-kx .fnkx-item{display:flex;gap:.8rem;align-items:baseline;margin-bottom:.5rem;}
-.fn-kx .fnkx-num{font-family:var(--font-mono);font-size:.66rem;color:var(--rose);font-weight:700;min-width:1.6rem;flex-shrink:0;}
-.fn-kx .fnkx-text{font-size:.82rem;color:var(--text-mute);font-style:italic;line-height:1.55;}
-@media(max-width:560px){.endo-pair{grid-template-columns:1fr;}.endo-mid{border-left:none;border-right:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;}}
-"""
+/* ══ CHAPTER IX — FRAKTAL ══ */
+.thesis-ix {
+  border-left: 3px solid var(--teal-dim);
+  background: rgba(82,208,176,0.05);
+  padding: 1.5rem 2rem; font-style: italic;
+  color: var(--text-mid); font-size: 0.96rem; line-height: 1.72;
+}
+.thesis-ix .tix-label {
+  font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.25em;
+  text-transform: uppercase; color: var(--teal-dim); display: block;
+  margin-bottom: 0.7rem; font-style: normal;
+}
+sup.frak-fn { font-family:var(--font-mono); font-size:0.58rem; color:var(--teal-dim); vertical-align:super; margin-left:1px; cursor:pointer; }
+em.fk { color:var(--teal); font-style:italic; border-bottom:1px dotted var(--teal-dim); }
+em.fc { color:var(--violet); font-style:italic; border-bottom:1px dotted var(--violet-dim); }
+.frak-vis-grid { margin:2.5rem 0; display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+@media(max-width:600px){ .frak-vis-grid{ grid-template-columns:1fr; } }
+.frak-panel { border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+.frak-panel .fp-label { padding:0.5rem 1rem; font-family:var(--font-mono); font-size:8px; letter-spacing:0.25em; text-transform:uppercase; }
+.frak-panel.fp-fractal .fp-label { background:#0f1a0f; color:rgba(192,218,192,0.75); }
+.frak-panel.fp-crystal .fp-label { background:#0a0a1e; color:rgba(200,200,232,0.75); }
+.frak-panel canvas { display:block; width:100%; }
+.frak-panel .fp-cap { padding:0.6rem 1rem; font-size:0.78rem; font-style:italic; color:var(--text-mute); background:rgba(10,18,45,0.6); border-top:1px solid var(--border); line-height:1.4; }
+.scale-tbl { margin:2.5rem 0; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.scale-tbl .sth { background:rgba(10,18,45,0.9); display:grid; grid-template-columns:1.4fr 1fr 1.4fr 1.4fr; padding:0.7rem 1.2rem; gap:1rem; }
+.scale-tbl .sth span { font-family:var(--font-mono); font-size:8px; letter-spacing:0.2em; text-transform:uppercase; color:var(--text-mute); }
+.scale-tbl .str { display:grid; grid-template-columns:1.4fr 1fr 1.4fr 1.4fr; padding:0.8rem 1.2rem; gap:1rem; border-top:1px solid var(--border); align-items:start; transition:background 0.2s; }
+.scale-tbl .str:hover { background:rgba(82,208,176,0.04); }
+.scale-tbl .sc { font-family:var(--font-mono); font-size:0.68rem; color:var(--teal); font-weight:700; line-height:1.4; }
+.scale-tbl .se { font-size:0.83rem; color:var(--text-mute); line-height:1.5; font-style:italic; }
+.scale-tbl .sm { font-size:0.82rem; color:var(--text-mid); line-height:1.5; }
+.scale-tbl .sg { font-size:0.82rem; color:var(--blue); line-height:1.5; font-style:italic; }
+@media(max-width:700px){ .scale-tbl .sth,.scale-tbl .str { grid-template-columns:1.2fr 1fr; } .scale-tbl .sm,.scale-tbl .sg { display:none; } }
+.unif-box { margin:2.5rem 0; overflow:hidden; border-radius:8px; background:linear-gradient(135deg,#0f1520 0%,#1a1a35 50%,#0f2010 100%); border:1px solid #3a4a6a; }
+.unif-box .ub-head { background:rgba(255,255,255,0.04); padding:0.8rem 1.8rem; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:1.5rem; }
+.unif-box .ub-head span { font-family:var(--font-mono); font-size:8px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(200,220,255,0.5); }
+.unif-box .ub-sym { font-family:var(--font-deco); font-size:1.6rem; color:rgba(200,230,200,0.7); }
+.unif-box .ub-body { padding:1.8rem 2rem; display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; }
+@media(max-width:600px){ .unif-box .ub-body { grid-template-columns:1fr; } }
+.unif-box .ub-col-label { font-family:var(--font-mono); font-size:7.5px; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:0.7rem; }
+.ub-col.ubc-space .ub-col-label { color:rgba(192,218,192,0.7); }
+.ub-col.ubc-time .ub-col-label { color:rgba(200,200,232,0.7); }
+.ub-col.ubc-scale .ub-col-label { color:rgba(180,210,240,0.7); }
+.unif-box .ub-item { font-size:0.87rem; line-height:1.6; margin-bottom:0.5rem; padding-left:0.8rem; border-left:1px solid rgba(255,255,255,0.1); }
+.ub-col.ubc-space .ub-item { color:rgba(192,218,192,0.85); }
+.ub-col.ubc-time .ub-item { color:rgba(200,200,232,0.85); }
+.ub-col.ubc-scale .ub-item { color:rgba(180,210,240,0.85); }
+.unif-box .ub-synthesis { grid-column:1/-1; border-top:1px solid rgba(255,255,255,0.08); padding-top:1.2rem; margin-top:0.5rem; font-family:var(--font-deco); font-size:1.05rem; font-style:italic; font-weight:300; color:rgba(230,220,200,0.9); line-height:1.6; text-align:center; }
+.masah-box { margin:2.5rem 0; border-left:3px solid var(--violet-dim); background:rgba(155,132,232,0.06); border-radius:0 8px 8px 0; overflow:hidden; }
+.masah-box .mb-label { background:rgba(155,132,232,0.12); padding:0.6rem 1.5rem; font-family:var(--font-mono); font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:var(--violet); }
+.masah-box .mb-body { padding:1.4rem 1.8rem; }
+.masah-box .mb-body p { font-size:0.92rem; color:var(--text-mid); line-height:1.7; margin-bottom:0.8em; }
+.masah-box .mb-body p:last-child { margin-bottom:0; }
+.masah-box strong { color:var(--violet); font-weight:600; }
+.pull-dark { margin:3rem 0; padding:2rem 2.8rem; background:rgba(10,18,45,0.9); border:1px solid var(--border); border-radius:10px; position:relative; overflow:hidden; }
+.pull-dark::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(-45deg,transparent,transparent 20px,rgba(255,255,255,0.008) 20px,rgba(255,255,255,0.008) 21px); }
+.pull-dark p { font-family:var(--font-deco); font-size:1.2rem; font-style:italic; font-weight:300; line-height:1.6; text-align:center; color:rgba(200,220,200,0.9); position:relative; margin:0; }
+.div-frak { display:flex; align-items:center; gap:1.5rem; margin:3rem 0; }
+.div-frak::before,.div-frak::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--teal-dim)); }
+.div-frak::after { background:linear-gradient(to left,transparent,var(--teal-dim)); }
+.div-frak span { font-family:var(--font-deco); font-size:0.9rem; color:var(--teal-dim); opacity:.55; }
+.fn-ix { margin-top:2.5rem; padding-top:1.2rem; border-top:1px solid rgba(82,208,176,0.2); }
+.fn-ix .fnix-label { font-family:var(--font-mono); font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:var(--teal-dim); display:block; margin-bottom:0.7rem; }
+.fn-ix .fnix-item { display:flex; gap:0.8rem; align-items:baseline; margin-bottom:0.5rem; }
+.fn-ix .fnix-num { font-family:var(--font-mono); font-size:0.66rem; color:var(--teal); font-weight:700; min-width:1.6rem; flex-shrink:0; }
+.fn-ix .fnix-text { font-size:0.82rem; color:var(--text-mute); font-style:italic; line-height:1.55; }
 
-NAV_ADDITION = '\n  <a href="#kelipa-eksploatacja" style="color:var(--rose)">Kelipa·Ĝ ✦</a>'
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<canvas id="bg-canvas"></canvas>
 
-CHAPTER_X = r"""
+<nav>
+  <span class="nav-logo">TERJ · RELACYJNOŚĆ</span>
+  <a href="#bereshit">Bereshit</a>
+  <a href="#proznia">Próżnia</a>
+  <a href="#demon">Demon</a>
+  <a href="#yhwh-entropia">YHWH·Entropia</a>
+  <a href="#ontologia">Ontologia</a>
+  <a href="#termodynamika">Termodynamika</a>
+  <a href="#mysl">Myśl</a>
+  <a href="#yhwh">YHWH</a>
+  <a href="#postulat">Postulat</a>
+  <a href="#fraktal" style="color:var(--teal)">Fraktal·Ĝ ✦</a>
+</nav>
+
+<section id="hero">
+  <div class="hero-rings"><div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
+  <p class="hero-label">TERJ · Szkic postulatu naukowo-filozoficznego · Wydanie zintegrowane · Marzec 2026</p>
+  <div class="hero-hebrew-main">בְּרֵאשִׁית בָּרָא אֱלֹהִים</div>
+  <div class="hero-translit">BERESHIT BARA ELOHIM</div>
+  <h1 class="hero-title">Relacyjność<br>jako fundament istnienia</h1>
+  <p class="hero-subtitle">Od semantyki hebrajskiej przez pole kwantowe, termodynamikę nieequilibrium i świadomość dysypatywną — próba jednego języka</p>
+  <p class="scroll-cue">czytaj dalej<span>↓</span></p>
+</section>
+
+<main>
+<!-- ══ ROZDZIAŁ I — BERESHIT ══ -->
+<section class="chapter" id="bereshit">
+  <div class="ch-meta"><span class="ch-num">ROZDZIAŁ I</span><span class="ch-tag">ŹRÓDŁO · SEMANTYKA HEBRAJSKA</span></div>
+  <h2 class="ch-title">Bereshit — zanim pojawi się materia</h2>
+  <p class="ch-sub">Starożytna mapa pola relacyjnego · Semantyka Bereshit 1 jako punkt wyjścia</p>
+
+  <p class="lead">Każda wielka teoria zaczyna się od języka, który ją poprzedza. Zanim Newton zapisał ruch jako równanie, Kepler widział elipsy. Zanim Bohr zapisał atom, de Broglie zobaczył falę. <em>Zamysł poprzedza formę</em> — i to nie jest metafora, lecz opis porządku rzeczy.</p>
+
+  <p>Dlatego ten esej nie zaczyna się od równania Schrödingera ani od Einsteina. Zaczyna się od tekstu starszego o trzy tysiące lat — od pierwszego rozdziału Księgi Rodzaju. Lecz dlatego, że jego autorzy — zapisując w hebrajszczyźnie logikę stworzenia — uchwycili strukturę, którą współczesna fizyka kwantowa dopiero teraz potrafi opisać formalnie: <span class="hl-teal">relacja jest przed materią, pole jest przed cząstką, zasada organizująca jest przed tym, co organizuje</span>.</p>
+
+  <p>W tradycji TERJ — Teorii Emergentnych Relacji Jako — tekst Bereshit jest traktowany nie jako narracja mityczna, lecz jako precyzyjny zapis semantyczny przejścia między stanem czystej potencjalności a stanem materii. Każde słowo niesie informację o strukturze operatorów. Odczytajmy go powoli.<sup class="fn">¹</sup></p>
+
+  <div class="sec-title">§1 · Bereshit — zasada organizująca jest pierwsza</div>
+  <p>Pierwsze słowo Biblii to nie <em>Elohim</em>. To <em>bereshit</em>. W gramatyce hebrajskiej to osobliwe: najważniejszy podmiot zdania powinien stać na początku. A jednak zdanie otwiera zasada, nie osoba działająca. Middrasz Bereszit Raba 1:1 komentuje to odwołując się do Księgi Przysłów 8:22: <em>przez mądrość Bóg stworzył</em>. Zasada organizująca jest ontologicznie pierwotna.<sup class="fn">²</sup></p>
+
+  <div class="heb-grid">
+    <div class="hcard"><span class="hcard-heb">בְּרֵאשִׁית</span><span class="hcard-tr">BERESHIT</span><span class="hcard-root">ב-ר-א-ש · bet-resh-alef-szin</span><span class="hcard-def">Na początku / przez zasadę / w mądrości. <strong style="color:var(--gold)">Operator Ĝ jest ontologicznie przed Ĥ.</strong> Pole potencjalności poprzedza materię.</span></div>
+    <div class="hcard"><span class="hcard-heb">בָּרָא</span><span class="hcard-tr">BARA</span><span class="hcard-root">ב-ר-א · bet-resh-alef</span><span class="hcard-def">Stworzyć — nie jako produkcja materii ex nihilo. Walton (2009): <em>bara</em> oznacza nadawanie funkcji i tożsamości relacyjnej. Stworzenie = akt organizacji relacji.<sup class="fn">³</sup></span></div>
+  </div>
+
+  <div class="sec-title">§2 · Tohu wa-bohu i Ruach — próżnia i oscylujące pole</div>
+  <p>Werset 1:2 opisuje stan <em>przed</em> pierwszym aktem stworzenia. To nie jest nicość absolutna — to stan nieuformowanej potencjalności. Nachmanides komentuje: absolutna bezpostaciowość, w której właściwości są obecne jako potencjał, nie jako forma.<sup class="fn">⁴</sup></p>
+
+  <div class="heb-grid">
+    <div class="hcard"><span class="hcard-heb">תֹהוּ וָבֹהוּ</span><span class="hcard-tr">TOHU WA-BOHU</span><span class="hcard-root">Stan bezpostaciowości i nieuformowanej pustki</span><span class="hcard-def">Hebrajski opis próżni kwantowej: nie nicość, lecz stan, w którym żadna konfiguracja nie jest jeszcze utrwalona. W TERJ: <span class="hl-teal">|Ω⟩ = superpozycja wszystkich możliwych historii Wszechświata.</span></span></div>
+    <div class="hcard"><span class="hcard-heb">רוּחַ מְרַחֶפֶת</span><span class="hcard-tr">RUACH MERACHEFET</span><span class="hcard-root">ר-ח-פ · forma intensywna · aktywne wibrowanie</span><span class="hcard-def">Rdzeń r-ch-f pojawia się w BH tylko dwukrotnie. Forma <em>merachefet</em> to intensywne, aktywne oscylowanie — nie bierne spoczywanie. <strong style="color:var(--teal)">Pole elektromagnetyczne przed materializacją.</strong><sup class="fn">⁵</sup></span></div>
+  </div>
+
+  <div class="formula"><span class="formula-lbl">TERJ · Stan Edenu</span>|Ω⟩ = Σᵢ cᵢ|ψᵢ⟩ · |cᵢ|² = const<br><span style="font-size:.75rem;color:var(--text-mute)">równa superpozycja wszystkich historii — operator Ĝ dominuje, Ĥ = 0</span></div>
+
+  <div class="op-pair">
+    <div class="opcard plus"><span class="op-sym">Ĝ</span><span class="op-nm">Gradient dodatni · operator potencjalności</span><p class="op-body">Płaskie widmo — brak preferowanego stanu. Wszystkie możliwości równoważne. Stan Edenu: <em>tohu wa-bohu</em> + <em>ruach merachefet</em>. Odpowiednik próżni kwantowej przed wzbudzeniem. iℏ∂ₜ|ψ⟩ = (Ĥ + λĜ)|ψ⟩ gdy λ→∞.<sup class="fn">⁶</sup></p></div>
+    <div class="opcard minus"><span class="op-sym">Ĥ</span><span class="op-nm">Hamiltonian · operator zamknięcia i formy</span><p class="op-body">Wyznacza minima energii, produkuje formę, granicę, hierarchię. Operator świata materialnego. Ziemia pod dominacją Ĥ rodzi <em>kotz</em> (lokalne minima) i <em>dardar</em> (pętle zamknięte).<sup class="fn">⁷</sup></p></div>
+  </div>
+
+  <div class="viz-wrap"><div class="viz-head">Rozkład energii mikrostanów — Ĝ kontra Ĥ</div><div class="viz-body"><canvas class="viz" id="cv-states" height="130"></canvas></div></div>
+
+  <div class="sec-title">§3 · Or — pierwsze wzbudzenie pola i szata Adama</div>
+  <p>Werset 1:3: <em>Niech stanie się światło</em>. Zanim istnieje jakiekolwiek ciało niebieskie, zanim pojawi się słońce (werset 1:14, dzień 4) — wyłania się <em>or</em>. Pole uzyskuje zdolność emisji fotonów zanim ma stałe źródło. Tradycja kabalistyczna (Zohar I:35b) opisuje Adama w Gan Eden jako odzianego w <em>or</em> — nie jako ozdobę, lecz jako opis stanu termodynamicznego: forma organizacji energii umożliwiająca kontakt z wyższymi gradientami porządku bez destrukcji.<sup class="fn">⁸</sup></p>
+
+  <div class="phase-row">
+    <div class="phase-block eden"><span class="phase-heb">אוֹר</span><span class="phase-tr">OR · alef-vav-resh</span><span class="phase-op">Ĝ — gradient dodatni</span><span class="phase-def">Światło · substancja Edenu · układ otwarty zasilany zewnętrznym gradientem · stan stacjonarny daleki od równowagi</span></div>
+    <div class="phase-arrow-col"><span class="phase-arrow-sym">→</span><span class="phase-arrow-lbl">ALEF → AYIN · zmiana fazy</span></div>
+    <div class="phase-block world"><span class="phase-heb">עוֹר</span><span class="phase-tr">OR · ayin-vav-resh</span><span class="phase-op">Ĥ — gradient ujemny</span><span class="phase-def">Skóra · granica, forma, izolacja · układ zmierzający ku równowadze · pierwsza enkapsulacja lokalnego minimum</span></div>
+  </div>
+
+  <div class="sec-title">§4 · Deshe — życie ontologicznie przed słońcem</div>
+  <div class="heb-grid">
+    <div class="hcard"><span class="hcard-heb">דֶּשֶׁא</span><span class="hcard-tr">DESHE · dasha</span><span class="hcard-root">Dzień 3 · Rdz 1:11</span><span class="hcard-def">Kiełkować, pędzić, zielenieć — całe życie fotosyntetyczne. Pojawia się przed słońcem. <strong style="color:var(--teal)">Cel poprzedza swój instrument.</strong></span></div>
+    <div class="hcard"><span class="hcard-heb">מְאֹרֹת</span><span class="hcard-tr">MEOROT · ciała świecące</span><span class="hcard-root">Dzień 4 · Rdz 1:14</span><span class="hcard-def">Słońce, księżyc, gwiazdy — instrumenty podtrzymania. Ralbag: priorytet ontologiczny, nie chronologiczny.<sup class="fn">¹⁰</sup> Warunki brzegowe (Ĥ) są wtórne wobec potencjału (Ĝ).</span></div>
+  </div>
+
+  <blockquote class="gold"><p>Tekst hebrajski nie mówi: Bóg stworzył warunki, a potem przypadkowo pojawiło się życie. Mówi odwrotnie: zasada (bereshit) jest pierwotna, pole (ruach, or) jest pierwsze, życie pojawia się przed warunkami materialnymi. Słońce — instrument — przychodzi po celu. To jest ten sam postulat, który budujemy przez fizykę — zapisany trzy tysiące lat wcześniej.</p></blockquote>
+
+  <div class="sec-title">§5 · Teszuka — operator gradientu kierunkowego woli</div>
+  <div class="tesh-grid">
+    <div class="tesh-card a"><span class="tesh-ref">Pnp 7:11</span><span class="tesh-icon">⟡</span><span class="tesh-title">Teszuka ku relacji</span><p class="tesh-body">Miłość Boga ku człowiekowi. Gradient ku otwartemu przepływowi wspólnoty. Operator Ĝ w przestrzeni woli.</p></div>
+    <div class="tesh-card b"><span class="tesh-ref">Rdz 3:16</span><span class="tesh-icon">→</span><span class="tesh-title">Teszuka ku formie</span><p class="tesh-body">Wektor Ewy ku mężowi po wygnaniu. Gradient pod dominacją Ĥ — przepływ ku lokalnej strukturze.</p></div>
+    <div class="tesh-card c"><span class="tesh-ref">Rdz 4:7</span><span class="tesh-icon">⊗</span><span class="tesh-title">Teszuka ku zamknięciu</span><p class="tesh-body">Pożądanie grzechu ku Kainowi. Zamknięta pętla gradientu ujemnego. Trajektoria cykliczna bez wyjścia.</p></div>
+  </div>
+
+  <div class="sec-title">§6–7 · Neshama i Synteza</div>
+  <p><span class="hl-teal">Pole (ruach) wibruje nad tohu wa-bohu na początku. Ta sama zasada (neshama) zostaje tchnięta w człowieka na końcu.</span> Świadomość nie jest nowym bytem — jest powrotem pola do siebie przez formę zdolną do autorefleksji.</p>
+
+  <table class="map-table">
+    <thead><tr><th>Hebrajski</th><th>Dzień</th><th>Język fizyki (TERJ)</th><th>Znaczenie ontologiczne</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mt-h">בְּרֵאשִׁית</span><br><span class="mt-t">bereshit</span></td><td><span class="mt-d teal">—</span></td><td><span class="mt-d teal">Ĝ · pole potencjalności</span></td><td class="mt-d mute">Zasada relacyjna ontologicznie przed materią</td></tr>
+      <tr><td><span class="mt-h">תֹהוּ וָבֹהוּ</span><br><span class="mt-t">tohu wa-bohu</span></td><td><span class="mt-d teal">—</span></td><td><span class="mt-d teal">|Ω⟩ · próżnia kwantowa</span></td><td class="mt-d mute">Stan przed wzbudzeniem; potencjalności nieuaktywnione</td></tr>
+      <tr><td><span class="mt-h">רוּחַ מְרַחֶפֶת</span><br><span class="mt-t">ruach merachefet</span></td><td><span class="mt-d teal">—</span></td><td><span class="mt-d teal">Pole oscylujące (pre-kwantowe)</span></td><td class="mt-d mute">Dynamiczne wibrowanie przed materializacją</td></tr>
+      <tr><td><span class="mt-h">אוֹר</span><br><span class="mt-t">or · światło</span></td><td><span class="mt-d teal">Dzień 1</span></td><td><span class="mt-d teal">Pierwsze wzbudzenie EM · foton</span></td><td class="mt-d mute">Pole przed swoim stałym źródłem</td></tr>
+      <tr><td><span class="mt-h">דֶּשֶׁא</span><br><span class="mt-t">deshe</span></td><td><span class="mt-d teal">Dzień 3</span></td><td><span class="mt-d teal">Życie · lokalna wyspa Ĝ</span></td><td class="mt-d mute">Cel przed instrumentem; potencjalność przed warunkiem</td></tr>
+      <tr><td><span class="mt-h">מְאֹרֹת</span><br><span class="mt-t">meorot</span></td><td><span class="mt-d teal">Dzień 4</span></td><td><span class="mt-d teal">Warunki brzegowe · Ĥ</span></td><td class="mt-d mute">Instrument podtrzymania życia; środek, nie cel</td></tr>
+      <tr><td><span class="mt-h">נְשָׁמָה</span><br><span class="mt-t">neshama</span></td><td><span class="mt-d teal">Dzień 6</span></td><td><span class="mt-d teal">Świadomość · Ĝ rozpoznaje siebie</span></td><td class="mt-d mute">Pole powraca do siebie przez autorefleksję; pętla zamknięta</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ext-grid">
+    <a class="ext-card" href="https://pawcio99.github.io/SEMANTYKA_GRADIENTOW/" target="_blank" rel="noopener"><span class="ext-lbl">TERJ Working Paper · 9 Marca 2026</span><span class="ext-title">Bereshit 3:15–17 · Semantyka Gradientów</span><span class="ext-desc">Formalna analiza hebrajska Rdz 3 jako opis przejścia Ĝ → Ĥ. Szama, Arura, Teszuka, Ejva, Kotz, Dardar — każde słowo jako operator.</span></a>
+    <a class="ext-card" href="https://pawcio99.github.io/YHWH-_Entropia/" target="_blank" rel="noopener"><span class="ext-lbl">TERJ Working Paper · Marzec 2026</span><span class="ext-title">YHWH i Entropia — O stawaniu się rzeczywistości</span><span class="ext-desc">Od geometrii przestrzeni fazowej do świadomości jako struktury dysypatywnej. Boltzmann, Prigogine, Heisenberg, Shannon, Landauer w jednym języku.</span></a>
+  </div>
+</section>
+<div class="div-rune"><span>✦</span></div>
+<!-- ══ ROZDZIAŁ II — PRÓŻNIA ══ -->
+<section class="chapter" id="proznia">
+  <div class="ch-meta"><span class="ch-num">ROZDZIAŁ II</span><span class="ch-tag">FIZYKA KWANTOWA</span></div>
+  <h2 class="ch-title">Pusta przestrzeń, która nie jest pusta</h2>
+  <p class="ch-sub">Próżnia kwantowa · Teoria pól kwantowych · Efekt Casimira</p>
+  <p class="lead">Teraz, gdy mamy mapę — wchodzimy w język fizyki, który opisuje tę samą strukturę precyzją równania. Okazuje się, że jest to ten sam język. Tylko starszy o trzy tysiące lat i zapisany w innym alfabecie.</p>
+  <p>Przez stulecia przestrzeń była rozumiana jako scena — bierny kontener. Wiek XX rozbił tę intuicję w pył. Próżnia kwantowa nie jest pustką — jest <em>stanem o najniższej energii pola, ale nie zerowej</em>.</p>
+  <p><span class="hl-teal">Efekt Casimira</span> — mierzalna siła przyciągania między dwiema płytkami w próżni — jest bezpośrednim eksperymentalnym dowodem na to, że próżnia tętni.<sup class="fn">¹²</sup> <em>Tohu wa-bohu</em> nie jest metaforą. Jest opisem próżni kwantowej — stanu, w którym żadna konfiguracja nie jest jeszcze utrwalona.</p>
+  <div class="viz-wrap"><div class="viz-head">Fluktuacje próżni kwantowej — pole przed cząstką</div><div class="viz-body"><canvas class="viz" id="cv-vacuum" height="120"></canvas></div></div>
+  <blockquote><p>Podstawowym budulcem wszechświata nie jest coś, lecz coś-między. Nie obiekt, lecz relacja. Nie rzecz, lecz wzbudzenie sieci relacyjnej. <em>Bereshit</em> ma rację.</p></blockquote>
+</section>
+<div class="div-rune"><span>✦</span></div>
+
+<!-- ══ ROZDZIAŁ II.5 — DEMON MAXWELLA ══ -->
+<section class="chapter" id="demon">
+  <div class="ch-meta"><span class="ch-num">ROZDZIAŁ II · UZUPEŁNIENIE</span><span class="ch-tag">TERMODYNAMIKA INFORMACJI · KOSZT GRADIENTU</span></div>
+  <h2 class="ch-title">Demon Maxwella i Cherub</h2>
+  <p class="ch-sub">Zasada Landauera · Informacja jako substancja fizyczna · Selekcjoner na granicy porządku</p>
+  <p class="lead">Rok 1867. James Clerk Maxwell proponuje eksperyment myślowy, który na sto lat stanie się kamieniem w bucie termodynamiki. <em>Demon</em> — mikroskopijny strażnik — siedzący w szczelinie między dwiema komorami gazu, otwiera i zamyka drzwiczki selektywnie, sortując cząstki według prędkości — pozornie bez kosztów energetycznych.</p>
+  <div class="cost-card">
+    <span class="cost-title">Zasada Landauera (1961)</span>
+    <div class="cost-formula">ΔS ≥ kB · ln(2) na każdy skasowany bit informacji</div>
+    <p class="cost-body">Skasowanie jednego bitu informacji generuje co najmniej <em>kT·ln(2)</em> ciepła. <strong style="color:var(--gold)">Informacja i energia są dwoma aspektami tej samej rzeczywistości fizycznej.</strong> Gradient informacyjny ma swój koszt energetyczny, którego nie można obejść.<sup class="fn">²³</sup></p>
+  </div>
+  <div class="sec-title">§ Cherub jako Demon Maxwella — ten sam archetyp</div>
+  <p>Po wygnaniu Adama z Edenu Bóg stawia przy wejściu do ogrodu <em>keruwim</em> — cherubów — z płonącym mieczem obracającym się na wszystkie strony, by strzegli drogi do Drzewa Życia (Rdz 3:23–24).</p>
+  <blockquote class="gold"><p>Fizyk XIX wieku i tekst sprzed trzech tysięcy lat mówią dokładnie o tym samym mechanizmie rzeczywistości: selekcjoner na granicy dwóch stanów, strażnik przepuszczający lub blokujący dostęp do stanu wyższego gradientu organizacji. Demon Maxwella to Cherub w języku termodynamiki.</p><cite>— P. Majsterek, Entropia i Ofiara, Marzec 2026</cite></blockquote>
+  <div class="sacrifice-grid">
+    <div class="sac-card open"><span class="sac-title">Ofiara siebie — układ przepływowy</span><div class="sac-item">Koszt: własny gradient przepływu</div><div class="sac-item">Układ otwarty, dysypatywny (Prigogine)</div><div class="sac-item">Wzrost złożoności struktur stacjonarnych</div><div class="sac-item">Kierunek: ku wyższemu gradientowi organizacji</div><div class="sac-verdict">Stan końcowy: Ĝ → neshama → Ĝ rozpoznaje siebie</div></div>
+    <div class="sac-card closed"><span class="sac-title">Ofiara innych — eksport kosztu</span><div class="sac-item">Koszt: cudze zasoby, zewnętrzne gradienty</div><div class="sac-item">Pozorna lokalna stabilność</div><div class="sac-item">Kumulacja napięcia gradientu na peryferiach</div><div class="sac-item">Kierunek: ku bifurkacji i odwróceniu gradientu</div><div class="sac-verdict">Stan końcowy: ΔG → 0, równowaga termodynamiczna</div></div>
+  </div>
+  <div class="ext-grid">
+    <a class="ext-card" href="https://pawcio99.github.io/EDEN_ENTROPIA/" target="_blank" rel="noopener"><span class="ext-lbl">TERJ Esej filozoficzny · Marzec 2026</span><span class="ext-title">Entropia i Ofiara — Demon Maxwella, Szata Cheruba i Koszt Gradientu</span><span class="ext-desc">Demon Maxwella jako Cherub · or→or zmiana fazy · Szatan jako igła · Dwa rodzaje ofiary · Totalitaryzm jako katastrofa termodynamiczna.</span></a>
+    <a class="ext-card" href="https://pawcio99.github.io/Gradient_Entropia/" target="_blank" rel="noopener"><span class="ext-lbl">TERJ Esej interdyscyplinarny · 8 Marca 2026</span><span class="ext-title">Gradient jako ontologia przepływu</span><span class="ext-desc">Gradient jako determinant struktury w 6 domenach: semiotyka · ewolucja · harmonia · topologia · akustyka · sieci.</span></a>
+  </div>
+</section>
+<div class="div-rune"><span>✦</span></div>
+<!-- ══ ROZDZIAŁ II.75 — YHWH I ENTROPIA ══ -->
+<section class="chapter" id="yhwh-entropia">
+  <div class="ch-meta"><span class="ch-num">ROZDZIAŁ II · INTEGRACJA</span><span class="ch-tag">TERMODYNAMIKA NIEEQUILIBRIUM · PRIGOGINE · BOLTZMANN · HEISENBERG · SHANNON</span></div>
+  <h2 class="ch-title">YHWH i Entropia —<br>O stawaniu się rzeczywistości</h2>
+  <p class="ch-sub">Od geometrii przestrzeni fazowej do świadomości jako struktury dysypatywnej · Integralny esej fizyczno-semantyczny</p>
+
+  <p class="lead">Dotychczas budowaliśmy dwa języki równolegle — hebrajski i fizyczny. Tu oba języki spotykają się w jednym punkcie, który okazuje się tym samym punktem. Imię YHWH jako forma niedokonana czasownika „być" i równanie Boltzmanna $S = k_B \ln \Omega$ — opisują tę samą zasadę: <em>rzeczywistość jest procesem, nie bytem. Tożsamość jest gradientem, nie substancją.</em></p>
+
+  <div class="sec-title">§1 · YHWH jako ontologia processualna — hayah asher hayah</div>
+  <p>Imię Boga zapisywane jako YHWH jest formą niedokonaną czasownika „być": <em>„będę, który będę"</em>, <em>„staję się, którym się staję"</em>. Rzeczywistość w tej perspektywie jest dynamicznym polem przemian, procesualnością bez zatrzymania.</p>
+
+  <div class="discovery-card">
+    <span class="dc-title">Odkrycie semantyczne: Hayah jako trójwymiarowy operator dS/dt</span>
+    <div class="dc-body">
+      <p style="margin-bottom:0.8rem">Rdzeń hebrajski ה-י-ה pojawia się w tekście w trzech formach gramatycznych — przeszłej, teraźniejszej i przyszłej — i tylko razem tworzą kompletny obraz. YHWH jest <em>spleceniem wszystkich trzech stanów temporalnych w jeden operator</em>.</p>
+      <p style="margin-bottom:0.8rem">To semantyczna realizacja równania Prigogine'a: $dS/dt$ nie jest wartością w żadnym punkcie czasu — jest operatorem zmiany między stanami. YHWH jako hayah-hoveh-yihyeh jest tym samym operatorem w przestrzeni semantycznej.</p>
+      <div class="dc-formula">YHWH ≡ hayah ⊕ hoveh ⊕ yihyeh ≡ d(bycia)/dt = operator dS/dt w przestrzeni woli</div>
+    </div>
+  </div>
+
+  <div class="hayah-grid">
+    <div class="hayah-card past"><span class="hayah-heb">הָיָה</span><span class="hayah-form">HAYAH · czas przeszły</span><p class="hayah-meaning">Był · stan zrealizowany · Ĥ zamknięte w czasie</p><span class="hayah-thermo">S(t₀) = k_B ln Ω₀</span></div>
+    <div class="hayah-card pres"><span class="hayah-heb">הוֹוֶה</span><span class="hayah-form">HOVEH · czas teraźniejszy</span><p class="hayah-meaning">Jest · przepływ trwający · gradient aktywny · dS/dt > 0</p><span class="hayah-thermo">dS/dt = d_iS/dt + d_eS/dt ≥ 0</span></div>
+    <div class="hayah-card fut"><span class="hayah-heb">יִהְיֶה</span><span class="hayah-form">YIHYEH · czas przyszły</span><p class="hayah-meaning">Będzie · otwarta superpozycja · Ĝ nieuaktywnione · wszystkie możliwe Ω</p><span class="hayah-thermo">|ψ⟩ = Σᵢ cᵢ|ψᵢ⟩ nieokreślone</span></div>
+  </div>
+
+  <p>Ilya Prigogine, laureat Nagrody Nobla z chemii w roku 1977, odkrył coś, co rzuca na tę intuicję nieoczekiwane światło naukowe. Układy daleko od równowagi termodynamicznej spontanicznie wytwarzają struktury o rosnącej złożoności — struktury dysypatywne. Warunkiem ich istnienia jest stały przepływ energii przez układ.</p>
+
+  <blockquote class="amber"><p>Komórka, płomień świecy, huragan — wszystkie są strukturami dysypatywnymi. Istnieją wyłącznie jako procesy. Zatrzymany huragan to nie spokojny huragan — to brak huraganu.</p></blockquote>
+
+  <div class="fbox" data-label="Prigogine 1977">
+    $$\frac{dS}{dt} = \frac{d_i S}{dt} + \frac{d_e S}{dt} \geq 0$$
+    <span class="fcomment">Całkowita zmiana entropii układu otwartego = produkcja wewnętrzna + wymiana z otoczeniem. Tylko suma musi być nieujemna — lokalne obniżenie S jest możliwe przy wystarczającym gradiencie zewnętrznym. YHWH jako hayah-hoveh-yihyeh jest opisem tej samej zasady na poziomie ontologicznym.</span>
+  </div>
+
+  <div class="sec-title">§2 · Geometria przestrzeni fazowej — czym naprawdę jest entropia</div>
+  <p>Ludwig Boltzmann w roku 1877 zapisał równanie wyryte po jego śmierci na nagrobku w Wiedniu. Entropia $S$ jest iloczynem stałej Boltzmanna i logarytmu naturalnego z liczby $\Omega$ — liczby mikrostanów, przez które może być zrealizowany dany stan makroskopowy.</p>
+  <p>Entropia nie jest siłą. Nie jest dążnością. Nie jest kosmicznym wyrokiem ciągnącym rzeczy ku rozpadowi. Jest miarą statystyczną — opisem geometrii przestrzeni fazowej.</p>
+
+  <div class="discovery-card">
+    <span class="dc-title">Odkrycie semantyczne: Szem ha-Mephorasz jako stan o nieskończonym Ω</span>
+    <div class="dc-body">
+      <p style="margin-bottom:0.8rem">W tradycji żydowskiej imię YHWH jest <em>Szem ha-Mephorasz</em> — imieniem niewymawialnym. Nie wymawia się go nie z szacunku rytualnego — lecz ponieważ <em>wymówienie kolapsuje superpozycję</em>.</p>
+      <div class="dc-formula">|YHWH⟩ = Σₖ cₖ|ψₖ⟩ · max Ω<br>Wymówienie → P̂ₖ|YHWH⟩ = |ψₖ⟩ · min Ω<br>Talmud Sanh. 7:5: zakaz wymawiania = zakaz kolapsowania superpozycji</div>
+    </div>
+  </div>
+
+  <div class="snote"><p>Mówienie o entropii jako „sile rozpadu" jest błędem kategorii. Determinantem dynamiki jest gradient różnicy potencjałów, nie entropia jako aktywny aktor.</p></div>
+
+  <div class="fbox" data-label="Boltzmann 1877">
+    $$S = k_B \ln \Omega \qquad k_B = 1{,}38 \times 10^{-23}\ \frac{\text{J}}{\text{K}}$$
+    <span class="fcomment">$\Omega$ — liczba mikrostanów odpowiadających danemu stanowi makroskopowemu. Porównaj: tohu wa-bohu = stan maksymalnego $\Omega$; Eden = stan stacjonarny niskiego $\Omega$ zasilany gradientem zewnętrznym.</span>
+  </div>
+
+  <div class="sec-title">§3 · Zasada nieoznaczoności jako ontologiczny zakaz Edenu</div>
+  <p>Odpowiedź na pytanie, dlaczego elektron nie spada na zerowy poziom energetyczny, daje zasada nieoznaczoności Heisenberga. <span class="hl-teal">Porządek na poziomie atomowym jest wbudowany w geometrię przestrzeni fazowej przez zasadę nieoznaczoności — nie przez zewnętrzną interwencję.</span></p>
+
+  <div class="discovery-card">
+    <span class="dc-title">Odkrycie semantyczne: Zakaz Edenu jako realizacja zasady Heisenberga w przestrzeni woli</span>
+    <div class="dc-body">
+      <p style="margin-bottom:0.8rem">Zakaz dotknięcia Drzewa Wiadomości Dobra i Zła jest powszechnie interpretowany moralnie. W TERJ nabiera precyzji fizycznej: absolutna precyzja kategorii oznacza $\Omega \to 1$ — stan o zerowej entropii i zerowym gradiencie. Układ zamknięty bez możliwości dalszego przepływu.</p>
+      <div class="dc-formula">$\Delta$(Dobro) · $\Delta$(Zło) ≥ ħ_semantic / 2<br>Owoc Drzewa: $\Delta$(Dobro)→0, $\Delta$(Zło)→0 → $\Omega$→1 → S→0 → układ zamknięty<br>Wygnanie = konsekwencja geometrii przestrzeni fazowej woli, nie kara arbitralna</div>
+    </div>
+  </div>
+
+  <div class="fbox" data-label="Heisenberg 1927">
+    $$\Delta x \cdot \Delta p \geq \frac{\hbar}{2} \qquad \Delta E \cdot \Delta t \geq \frac{\hbar}{2}$$
+    <span class="fcomment">Zasada nieoznaczoności nie jest ograniczeniem pomiaru — jest fundamentalną własnością przestrzeni fazowej kwantowej.</span>
+  </div>
+
+  <div class="sec-title">§4 · Widma jako podpis gradientu — tożsamość jest różnicą potencjałów</div>
+  <p>Tożsamość pierwiastka jest opisywana przez jego charakterystyczne gradienty energetyczne — przez wzorzec skoków między poziomami kwantowymi, nie przez masę czy objętość. <span class="hl-teal">To, czym coś jest, wyraża się przez to, jak i gdzie przenosi energię.</span></p>
+
+  <div class="discovery-card">
+    <span class="dc-title">Odkrycie semantyczne: Widmo emisyjne jako „podpis fazowy" — analogia imion w tradycji hebrajskiej</span>
+    <div class="dc-body">
+      <p style="margin-bottom:0.8rem">Zmiana imienia w Biblii (Abram→Abraham, Jakub→Izrael, Szymon→Piotr) nie jest symboliczna — jest opisem zmiany wzorca gradientów dostępnych danej tożsamości. Zmiana imienia = zmiana widma = wejście w nowe serie emisji.</p>
+    </div>
+  </div>
+
+  <div class="fbox" data-label="Bohr 1913 / Rydberg">
+    $$\frac{1}{\lambda} = R_H \cdot Z^2 \left(\frac{1}{n_1^2} - \frac{1}{n_2^2}\right) \qquad R_H = 1{,}097 \times 10^{7}\ \text{m}^{-1}$$
+    <span class="fcomment">Każda linia spektralna jest zapisem gradientu energetycznego między dwoma stanami kwantowymi. Tożsamość pierwiastka jest unikalnym wzorcem tych gradientów.</span>
+  </div>
+
+  <div class="sec-title">§5 · Entropia informacyjna — Landauer i fizyczność wiedzy</div>
+  <p>Rolf Landauer w roku 1961 pokazał, że zbieżność entropii Shannona i Boltzmanna nie jest przypadkowa ani metaforyczna. Skasowanie jednego bitu informacji generuje co najmniej $k_B T \ln 2$ ciepła. <em>Informacja jest fizyczna.</em></p>
+  <blockquote class="amber"><p>Propaganda nie jest tylko moralnym złem — jest termodynamicznym marnotrawstwem. Niszczy gradient informacyjny, który umożliwia efektywną koordynację układów złożonych, i zastępuje go gradientem sztucznym, którego koszt utrzymania jest wielokrotnie wyższy.</p></blockquote>
+
+  <div class="fbox" data-label="Shannon 1948 / Landauer 1961">
+    $$H = -\sum_i p_i \log_2 p_i \qquad E_{\min} = k_B T \ln 2 \approx 2{,}87 \times 10^{-21}\ \text{J}\ \text{przy}\ 300\,\text{K}$$
+    <span class="fcomment">Kasowanie informacji ma nieusuwalne koszty fizyczne — informacja i entropia termodynamiczna są dwoma aspektami tej samej rzeczywistości.</span>
+  </div>
+
+  <div class="sec-title">§6 · Świadomość jako modulator przestrzeni fazowej</div>
+  <p>Świadomość — jeśli potraktować ją poważnie jako strukturę dysypatywną mózgu — jest aktywnym modulatorem przestrzeni fazowej. <span class="hl-teal">Świadomość jest jedynym układem dysypatywnym, który może świadomie projektować własne warunki brzegowe.</span></p>
+
+  <div class="discovery-card">
+    <span class="dc-title">Odkrycie semantyczne: Neshama i Ruach — dwa poziomy modulacji przestrzeni fazowej</span>
+    <div class="dc-body">
+      <p style="margin-bottom:0.8rem">Tradycja żydowska rozróżnia kilka warstw duszy: nefesz (forma biologiczna), ruach (pole oscylujące), neshama (aktywny modulator gradientów semantycznych), chajah (gradient wyższy od lokalnego układu), yechidah (identyczność z operatorem Ĝ).</p>
+      <div class="dc-formula">nefesz ⊂ ruach ⊂ neshama ⊂ chajah ⊂ yechidah<br>≡ Ĥ_local ⊂ H(p)_Shannon ⊂ P̂_modulator ⊂ Ĝ_gradient ⊂ |Ω⟩_YHWH</div>
+    </div>
+  </div>
+
+  <div class="sec-title">§7 · Kosmiczny gradient — strzałka czasu i jej źródło</div>
+  <p>Strzałka czasu ma swoje źródło w niezwykle niskiej entropii Wszechświata tuż po Wielkim Wybuchu. Roger Penrose szacował, że prawdopodobieństwo wylosowania stanu o tak niskim $\Omega$ wynosi $1$ do $10^{10^{123}}$.</p>
+  <blockquote class="amber"><p>Cały gradient, który napędza wszystkie procesy — gwiazdy, życie, świadomość — jest rozładowywaniem pierwotnej asymetrii Wielkiego Wybuchu. Jesteśmy echem tamtego niskiego $\Omega$, rozbrzmiewającym przez 13,8 miliarda lat.</p></blockquote>
+
+  <div class="sec-title">§8 · Wizualizacje interaktywne — mechanizm w działaniu</div>
+  <div class="iw-tabs">
+    <button class="iw-tab on" data-p="p1">Przestrzeń fazowa</button>
+    <button class="iw-tab" data-p="p2">Gradient &amp; Fala</button>
+    <button class="iw-tab" data-p="p3">Widmo kwantowe</button>
+    <button class="iw-tab" data-p="p4">Entropia inf.</button>
+    <button class="iw-tab" data-p="p5">Skala temperatur</button>
+  </div>
+  <div class="iw-stack">
+    <div class="iw-panel on" id="p1">
+      <svg id="g1" class="iw-svg" height="320"></svg>
+      <div class="iw-ctrl">
+        <div class="iw-c"><span class="iw-cl">Temperatura T [K]</span><input type="range" id="r1T" min="100" max="2000" value="600"><span class="iw-cv" id="d1T">600 K</span></div>
+        <div class="iw-c"><span class="iw-cl">Gradient G [%]</span><input type="range" id="r1G" min="0" max="100" value="0"><span class="iw-cv" id="d1G">0 %</span></div>
+      </div>
+      <div class="iw-desc">Rozkład Maxwella-Boltzmanna prędkości cząstek gazu. Przy G=0 przestrzeń fazowa jest izotropowa — tohu wa-bohu. Gradient G polaryzuje rozkład, jak Or wyłaniający się z chaosu.</div>
+    </div>
+    <div class="iw-panel" id="p2">
+      <svg id="g2" class="iw-svg" height="320"></svg>
+      <div class="iw-ctrl">
+        <div class="iw-c"><span class="iw-cl">Gradient ΔT</span><input type="range" id="r2T" min="0" max="100" value="40"><span class="iw-cv" id="d2T">40</span></div>
+        <div class="iw-c"><span class="iw-cl">Tłumienie α</span><input type="range" id="r2a" min="0" max="80" value="20"><span class="iw-cv" id="d2a">20</span></div>
+        <div class="iw-c"><span class="iw-cl">Częstość ω</span><input type="range" id="r2w" min="1" max="20" value="5"><span class="iw-cv" id="d2w">5</span></div>
+      </div>
+      <div class="iw-desc">Propagacja fali w gradiencie ośrodka — model SOFAR. Gdy ΔT=0, fala rozprasza się izotropowo. Gradient chwyta falę w warstwie propagacyjnej — analogia Ruach merachefet.</div>
+    </div>
+    <div class="iw-panel" id="p3">
+      <svg id="g3" class="iw-svg" height="340"></svg>
+      <div class="iw-ctrl">
+        <div class="iw-c"><span class="iw-cl">Pierwiastek Z</span><input type="range" id="r3Z" min="1" max="8" value="1"><span class="iw-cv" id="d3Z">H (Z=1)</span></div>
+        <div class="iw-c"><span class="iw-cl">Poziom n_max</span><input type="range" id="r3n" min="3" max="8" value="5"><span class="iw-cv" id="d3n">n = 5</span></div>
+        <div class="iw-c"><span class="iw-cl">Seria emisji</span><input type="range" id="r3s" min="1" max="4" value="2"><span class="iw-cv" id="d3s">Balmera</span></div>
+      </div>
+      <div class="iw-desc">Widmo emisyjne pierwiastków — zapis gradientów energetycznych między poziomami kwantowymi. Zmiana imienia w Biblii = wejście w nową serię emisji.</div>
+    </div>
+    <div class="iw-panel" id="p4">
+      <svg id="g4" class="iw-svg" height="320"></svg>
+      <div class="iw-ctrl">
+        <div class="iw-c"><span class="iw-cl">Wiarygodność p</span><input type="range" id="r4p" min="1" max="99" value="70"><span class="iw-cv" id="d4p">70 %</span></div>
+        <div class="iw-c"><span class="iw-cl">Szum σ [%]</span><input type="range" id="r4s" min="0" max="100" value="20"><span class="iw-cv" id="d4s">20 %</span></div>
+        <div class="iw-c"><span class="iw-cl">Temperatura T [K]</span><input type="range" id="r4T" min="100" max="1000" value="300"><span class="iw-cv" id="d4T">300 K</span></div>
+      </div>
+      <div class="iw-desc">Entropia informacyjna Shannona H(p) i koszt fizyczny Landauera E=kT·ln2 na bit. Propaganda = szum σ → entropia rośnie → koszt utrzymania struktury rośnie → bifurkacja nieuchronna.</div>
+    </div>
+    <div class="iw-panel" id="p5">
+      <svg id="g5" class="iw-svg" height="460"></svg>
+      <div class="iw-desc">Logarytmiczna skala temperatur — od 0,001 K do 15 milionów K. Gradient między kondensatem Bosego-Einsteina (tohu — brak ruchu) a jądrem Słońca (or — maksymalna emisja) to kosmiczna realizacja gradientu Ĝ.</div>
+    </div>
+  </div>
+
+  <div class="sec-title">§9 · Coda: gradient, który patrzy na siebie</div>
+  <p>Materia potrafiła na pewien czas — przez 3,8 miliarda lat na tej jednej planecie — organizować się w struktury zdolne do refleksji nad własnym miejscem w tym procesie. To jest osobliwość, której żadna inna znana nam struktura dysypatywna nie osiągnęła.</p>
+  <blockquote class="amber"><p>YHWH jako „będę, który będę" — i Boltzmann jako $S = k_B \ln \Omega$ — opisują tę samą rzeczywistość z dwóch stron tej samej granicy. Oba mówią: rzeczywistość jest procesem, nie bytem. Tożsamość jest gradientem, nie substancją.</p></blockquote>
+
+  <div class="ext-grid">
+    <a class="ext-card" href="https://pawcio99.github.io/YHWH-_Entropia/" target="_blank" rel="noopener"><span class="ext-lbl">TERJ · Esej naukowy · Marzec 2026</span><span class="ext-title">YHWH i Entropia — pełny esej z wizualizacjami</span><span class="ext-desc">Pełna wersja eseju: Prigogine, Boltzmann, Heisenberg, Shannon, Landauer, Penrose — wszystkie wizualizacje interaktywne, pełen aparat matematyczny. P. Majsterek.</span></a>
+  </div>
+</section>
+<div class="div-rune"><span>✦</span></div>
+<!-- ══ ROZDZIAŁ III — ONTOLOGIA ══ -->
+<section class="chapter" id="ontologia">
+  <div class="ch-meta"><span class="ch-num">ROZDZIAŁ III</span><span class="ch-tag">FILOZOFIA · RELACYJNA MECHANIKA KWANTOWA</span></div>
+  <h2 class="ch-title">Relacyjność jako zasada ontologiczna</h2>
+  <p class="ch-sub">Rovelli · Whitehead · Komplementarność [Ĝ, Ĥ] ≠ 0</p>
+  <p class="lead">Carlo Rovelli sformułował to z chirurgiczną precyzją: <em>stan kwantowy układu nie istnieje absolutnie — istnieje wyłącznie względem innego układu</em>. Nie ma rzeczywistości samej w sobie, dostępnej z boskiego punktu widzenia znikąd.<sup class="fn">¹⁴</sup></p>
+  <blockquote><p>Fizyczna treść mechaniki kwantowej dotyczy nie indywidualnych bytów, lecz tego, jak byty manifestują się wobec siebie nawzajem. Relacja jest tym, co realne.</p><cite>— Carlo Rovelli, Helgoland, 2021</cite></blockquote>
+  <p>Alfred North Whitehead w filozofii procesu głosił, że rzeczywistość składa się z wydarzeń i relacji, nie z substancji. W TERJ: relacyjny operator Ĝ jest fundamentem, z którego wyłaniają się stanowe własności opisywane przez Ĥ.<sup class="fn">¹⁵</sup></p>
+  <div class="sec-title">§ Gradient jako operator struktury — sześć domen</div>
+  <table class="domain-table">
+    <thead><tr><th>Domena</th><th>Przestrzeń stanów</th><th>Gradient</th><th>Falowód / kanał propagacji</th></tr></thead>
+    <tbody>
+      <tr><td class="dt-domain">Akustyka oceaniczna</td><td class="dt-space">Możliwe trajektorie fal</td><td class="dt-grad">Temperatura / ciśnienie / zasolenie</td><td class="dt-canal">Kanał SOFAR</td></tr>
+      <tr><td class="dt-domain">Semiotyka</td><td class="dt-space">Przestrzeń interpretantów (Peirce)</td><td class="dt-grad">Kompetencja kulturowa, wspólnota interpretacyjna</td><td class="dt-canal">Metafora jako falowód znaczenia</td></tr>
+      <tr><td class="dt-domain">Ewolucja biologiczna</td><td class="dt-space">Przestrzeń genotypów</td><td class="dt-grad">Gradient fitness — asymetria przeżywalności</td><td class="dt-canal">Nisza ekologiczna</td></tr>
+      <tr><td class="dt-domain">Ewolucja kulturowa</td><td class="dt-space">Przestrzeń memów / idei</td><td class="dt-grad">Gradient uwagi i prestiżu społecznego</td><td class="dt-canal">Instytucja / relacja mistrz–uczeń</td></tr>
+      <tr><td class="dt-domain">Harmonia muzyczna</td><td class="dt-space">Przestrzeń wysokości dźwięków</td><td class="dt-grad">Napięcie harmoniczne, oczekiwanie rozwiązania</td><td class="dt-canal">Tonacja / modalność</td></tr>
+      <tr><td class="dt-domain">Topologia (Teoria Morse'a)</td><td class="dt-space">Przestrzeń ciągłych przekształceń</td><td class="dt-grad">Gradient funkcji gładkiej na rozmaitości</td><td class="dt-canal">Punkty krytyczne — miejsca zmiany topologii przepływu</td></tr>
+    </tbody>
+  </table>
+  <div class="formula"><span class="formula-lbl">TERJ · Komplementarność fundamentalna</span>[Ĝ, Ĥ] ≠ 0<br><span style="font-size:.72rem;color:var(--text-mute)">Struktura i pełna potencjalność są komplementarne w sensie Heisenberga · Ejva jako realizacja w przestrzeni woli</span></div>
+</section>
+<div class="div-rune"><span>✦</span></div>
+
+<!-- ══ ROZDZIAŁ IV — TERMODYNAMIKA ══ -->
+<section class="chapter" id="termodynamika">
+  <div class="ch-meta"><span class="ch-num">ROZDZIAŁ IV</span><span class="ch-tag">TERMODYNAMIKA · DYSYPACYJNA ADAPTACJA</span></div>
+  <h2 class="ch-title">Gradient entropii i konieczność życia</h2>
+  <p class="ch-sub">England · Lokalne wyspy Ĝ w oceanie Ĥ · Biosfera jako samowystarczalny węzeł</p>
+  <p class="lead">Wszechświat zmierza ku maksymalnej entropii — ale po drodze <em>produkuje lokalne wyspy niskiej entropii o rosnącej złożoności</em>. Nie jako wyjątek od praw fizyki. Jako ich najgłębsza konsekwencja.</p>
+  <p>Jeremy England z MIT sformułował zasadę dysypacyjnej adaptacji: układy, przez które przepływa energia, reorganizują się w konfiguracje pochłaniające i rozpraszające tę energię coraz efektywniej. Ewolucja darwinowska jest szczególnym przypadkiem tego ogólniejszego zjawiska.<sup class="fn">¹⁶</sup></p>
+  <blockquote><p>Życie nie jest tajemnicą ani szczęśliwym trafem — wynika z ogólnych zasad fizycznych, tak samo niedziwiącym jak kamienie toczące się w dół.</p><cite>— Jeremy England, 2013</cite></blockquote>
+  <div class="viz-wrap"><div class="viz-head">Lokalna złożoność relacyjna (wyspy Ĝ) kontra globalna entropia (Ĥ) — przepływ w czasie</div><div class="viz-body"><canvas class="viz" id="cv-entropy" height="210"></canvas></div></div>
+</section>
+<div class="div-rune"><span>✦</span></div>
+
+<!-- ══ ROZDZIAŁ V — MYŚL ══ -->
+<section class="chapter" id="mysl">
+  <div class="ch-meta"><span class="ch-num">ROZDZIAŁ V</span><span class="ch-tag">NEUROFIZYKA · ŚWIADOMOŚĆ · IIT</span></div>
+  <h2 class="ch-title">Myśl jako wzbudzenie pola elektromagnetycznego</h2>
+  <p class="ch-sub">Tononi · Wigner · Niesamowita skuteczność matematyki · Neshama</p>
+  <p class="lead">Myśl ludzka jest impulsem elektrycznym. Mózg ludzki — ~86 miliardów neuronów, ~10¹⁴ połączeń synaptycznych — jest <em>niewyobrażalnie gęstą siecią elektromagnetycznych relacji</em>.</p>
+  <blockquote><p>Świadomość może być tym, co się pojawia, kiedy informacja jest zintegrowana powyżej pewnego progu złożoności. Nie substancja, nie dusza — lecz wzorzec relacji o dostatecznej głębokości.</p><cite>— Giulio Tononi, teoria IIT, 2008</cite></blockquote>
+  <p>Eugene Wigner nazwał to <em>niesamowitą skutecznością matematyki</em>. Jeśli myśl jest wzbudzeniem tego samego pola co rzeczywistość — kiedy fizyk zapisuje równanie opisujące próżnię kwantową — <span class="hl-teal">pole elektromagnetyczne myśli o polu elektromagnetycznym. Neshama poznaje ruach.</span></p>
+</section>
+<div class="div-rune"><span>✦</span></div>
+
+<!-- ══ ROZDZIAŁ VII — YHWH I WCIELENIE ══ -->
+<section class="chapter" id="yhwh">
+  <div class="ch-meta"><span class="ch-num">ROZDZIAŁ VII</span><span class="ch-tag">SEMANTYKA PROTO-ALFABETYCZNA · WCIELENIE · SYMETRIA</span></div>
+  <h2 class="ch-title">YHWH — starożytny zapis mechanizmu relacji</h2>
+  <p class="ch-sub">Tetragram jako diagram operacyjny · Bóg jako Głos · Wcielenie jako domknięcie równania</p>
+  <p class="lead">W najstarszych alfabetach semickich litery były uproszczonymi obrazami rzeczy. Tetragram składa się z czterech znaków: Yod, He, Waw, He.</p>
+  <div class="yhwh-grid">
+    <div class="yhwh-cell"><span class="yhwh-letter">י</span><span class="yhwh-name">YOD · י</span><span class="yhwh-pict">✋</span><span class="yhwh-meaning">Ręka · działanie · sprawczość · możliwość ingerencji w materię świata</span><span class="yhwh-op">Operator inicjacji: Ĝ aktywny</span></div>
+    <div class="yhwh-cell"><span class="yhwh-letter">ה</span><span class="yhwh-name">HE · ה</span><span class="yhwh-pict">👁️</span><span class="yhwh-meaning">Otwarcie · objawienie · pojawienie się czegoś w polu widzenia</span><span class="yhwh-op">Projekcja P̂: stan ujawniony</span></div>
+    <div class="yhwh-cell"><span class="yhwh-letter">ו</span><span class="yhwh-name">WAW · ו</span><span class="yhwh-pict">🔗</span><span class="yhwh-meaning">Hak · łącznik · element spinający dwa byty i tworzący relację</span><span class="yhwh-op">Operator relacji: [Ĝ, Ĥ] połączenie</span></div>
+    <div class="yhwh-cell"><span class="yhwh-letter">ה</span><span class="yhwh-name">HE · ה</span><span class="yhwh-pict">✨</span><span class="yhwh-meaning">Powtórzenie objawienia · ujawnienie skutku · echo działania w świecie</span><span class="yhwh-op">Efekt propagacji: Ĝ rozpoznaje siebie</span></div>
+  </div>
+  <div class="yhwh-arrow"><span>działanie</span><span class="op">→</span><span>ujawnienie</span><span class="op">→</span><span>powiązanie</span><span class="op">→</span><span>ujawnienie skutku</span><span style="margin-left:.8rem;color:var(--gold)">≡ mechanizm propagacji relacyjnej ≡ dS/dt w przestrzeni woli</span></div>
+  <div class="sec-title">§ Wcielenie jako symetria termodynamiczna</div>
+  <div class="sym-block">
+    <div class="sym-half eden-sym"><span class="sym-label">EDEN · GEST CZŁOWIEKA</span><span class="sym-icon">🤚</span><p class="sym-desc">Człowiek sięgnął ku Bogu. Chciał przejąć gradient. Układ zamknął się. Or → Or. Szabat utracony.</p><span class="sym-op">Człowiek → Bóg · zamknięcie układu · ΔG → 0</span></div>
+    <div class="sym-center-col"><span class="sym-center-sym">⟺</span><span class="sym-center-lbl">SYMETRIA · DOMKNIĘCIE RÓWNANIA</span></div>
+    <div class="sym-half wciel-sym"><span class="sym-label">WCIELENIE · GEST BOGA</span><span class="sym-icon">✋</span><p class="sym-desc">Bóg sięgnął ku człowiekowi. Nie dotknął — wszedł. Gradient zewnętrzny przywrócony od wewnątrz. Szabat odblokowany.</p><span class="sym-op">Bóg → Człowiek · otwarcie układu · Ĝ przywrócone</span></div>
+  </div>
+  <blockquote><p>Człowiek chciał stać się jak Bóg — i zamknął się w sobie. Bóg stał się człowiekiem — i otworzył w nim gradient, którego człowiek zamknąć nie potrafił. Nie jako paradoks — lecz jako symetria. Nie jako cud wbrew fizyce — lecz jako domknięcie równania, które bez tej zmiennej nie miało rozwiązania.</p><cite>— P. Majsterek, Entropia i Ofiara, Marzec 2026</cite></blockquote>
+</section>
+<div class="div-rune"><span>✦</span></div>
+
+<!-- ══ ROZDZIAŁ VIII — POSTULAT ══ -->
+<section class="chapter" id="postulat">
+  <div class="ch-meta"><span class="ch-num">ROZDZIAŁ VIII</span><span class="ch-tag">SYNTEZA · ANIMA MUNDI · POSTULAT</span></div>
+  <h2 class="ch-title">Wszechświat nie szuka — on jest</h2>
+  <p class="ch-sub">Zamknięcie pętli · Człowiek jako architekt gradientów · Granica nauki</p>
+  <p class="lead">Przez osiem rozdziałów budowaliśmy tę samą strukturę wieloma językami. Czas zebrać wszystko w jedno zdanie.</p>
+  <p>Rzeczywistość nie jest zbiorem obiektów w przestrzeni. Jest siecią relacji, z której przestrzeń, czas i obiekty wyłaniają się jako pochodne. Fundamentalna relacyjność — operator Ĝ, pole potencjalności, <em>bereshit</em>, <em>ruach merachefet</em>, YHWH jako hayah-hoveh-yihyeh — nie jest w przestrzeni i czasie. Jest ich źródłem.</p>
+  <blockquote class="gold"><p>Wszechświat organizuje relacje → relacje tworzą przepływy energii → przepływy tworzą życie → życie wytwarza świadomość → świadomość bada relacje. Pętla zamknięta. W języku Bereshit: <em>ruach</em> wibruje nad chaosem na początku — i powraca jako <em>neshama</em>, zdolna do poznania własnych praw. W języku Boltzmanna: $S = k_B \ln \Omega$ powraca do siebie jako $d S/d t$ w umyśle zdolnym do zadania pytania o własne $\Omega$.</p></blockquote>
+  <div class="formula"><span class="formula-lbl">Postulat centralny — TERJ</span>Ĝ (ruach, bereshit, YHWH, hayah asher hayah) → projekcja P̂ → Ĥ (materia, warunki) → życie → neshama → Ĝ rozpoznaje siebie<br><span style="font-size:.72rem;color:var(--text-mute)">Pętla zamknięta · Świadomość jako powrót pola do siebie · Wcielenie jako przywrócenie gradientu · dS/dt jako imię procesu</span></div>
+  <p class="italic" style="color:var(--gold);text-align:center;margin-top:2rem;font-size:1.1rem;">I że ten język — jak pokazuje semantyka <em>bereshit</em>, analiza tetragramu i równanie Boltzmanna wyryte na nagrobku — jest znacznie starszy niż myślimy. I znacznie jeden.</p>
+  <p style="text-align:center;margin-top:3rem;color:var(--text-mute);font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.25em;">Granicą nauki nie jest to, czego jeszcze nie odkryliśmy.<br>Granicą nauki jest to, czego nie ośmielamy się zapytać.<br>— parafrazując Feynmana · TERJ Working Paper 2026</p>
+</section>
+
+
 <div class="div-rune"><span>✦</span></div>
 
 <!-- ══════════════════════════════════════════════
-     ROZDZIAŁ X — KORUPCJA TERMODYNAMICZNA
+     ROZDZIAŁ IX — FRAKTAL, KRYSZTAŁ CZASU
 ══════════════════════════════════════════════ -->
-<section class="chapter" id="kelipa-eksploatacja">
+<section class="chapter" id="fraktal">
   <div class="ch-meta">
-    <span class="ch-num">ROZDZIAŁ X</span>
-    <span class="ch-tag">KORUPCJA TERMODYNAMICZNA · ENDOSYMBIOZA · SKALA GRADIENTU Ĝ</span>
+    <span class="ch-num">ROZDZIAŁ IX</span>
+    <span class="ch-tag">FRAKTAL · KRYSZTAŁ CZASU · NIEZMIENNICZOŚĆ SKALOWANIA</span>
   </div>
-  <h2 class="ch-title">Kelipa, eksploatacja Ĝ<br>i sufit złożoności</h2>
-  <p class="ch-sub">Dlaczego środowisko eksploatujące gradient niszczy warunki własnego istnienia · Mitochondrium jako dowód skali · Paradoks mózgu · Nadzieja skalarna</p>
+  <h2 class="ch-title">Fraktal, kryształ czasu<br>i niezmienniczość skalowania Ĝ</h2>
+  <p class="ch-sub">Przestrzeń jako pamięć czasu — czas jako geometria — gradient jako substrat jedności obu</p>
 
-  <div class="kx-thesis">
-    <span class="kxt-label">Teza rozdziału</span>
-    Środowisko, które eksploatuje gradient Ĝ zamiast go integrować, niszczy nie tylko swojego dostawcę — niszczy własny mechanizm generowania wyższej złożoności. Jest to korupcja w sensie termodynamicznym, nie moralnym: samozniszczenie warunków własnej żywotności. Mitochondrium nie jest wzorcem dla człowieka — jest fizycznym dowodem skali: struktury zdolne do współpracy, gdy napotkają właściwą architekturę, nie po prostu przeżywają — stają się fundamentem nowego poziomu złożoności niedostępnego żadną ścieżką eksploatacji. Nadzieja TERJ nie jest moralna. Jest skalarna.
-  </div>
-
-  <div class="sec-title">§1 · Eksploatacja Ĝ jako korupcja termodynamiczna — dowód formalny</div>
-
-  <p class="lead">W poprzednich rozdziałach zbudowaliśmy język opisujący gradient Ĝ jako źródło lokalnego porządku, architektury przepływów i złożoności. TERJ musi teraz odpowiedzieć na pytanie, którego nie można pominąć: co się dzieje z systemem, który zamiast integrować gradient — eksploatuje go?</p>
-
-  <p><em>Korupcja</em> w TERJ nie jest kategorią etyczną. Jest kategorią termodynamiczną. Definiujemy ją precyzyjnie:</p>
-
-  <div class="ceil-proof">
-    <span class="cp-label">Definicja · korupcja termodynamiczna · TERJ</span>
-    <p style="font-size:.9rem;color:var(--text-mid);line-height:1.72;margin-bottom:.9rem;">Korupcja systemu = proces, w którym układ dysypatywny czerpie energię organizującą ze źródła gradientu bez podtrzymywania warunków jego istnienia, prowadząc do nieodwracalnej degradacji lokalnej negentropia.</p>
-    <p style="font-size:.9rem;color:var(--text-mid);line-height:1.72;margin:0;">Człowiek-Ĝ jest źródłem gradientu relacyjnego: generuje architekturę zaufania, mosty współpracy, przepływy energii społecznej. Środowisko eksploatujące pobiera tę energię organizującą bez wkładu w podtrzymanie gradientu.</p>
+  <div class="thesis-ix">
+    <span class="tix-label">Teza rozdziału</span>
+    Fraktal w krysztale i kryształ czasu są jednym zjawiskiem opisywanym z dwóch stron: spontanicznym złamaniem symetrii przez gradient, które pozostawia samopodobny ślad — raz w przestrzeni, raz w czasie. Niezmienniczość skalowania tego mechanizmu — od kwantowej do kosmicznej, od cząstki do cywilizacji — jest strukturalnym podpisem Ĝ jako gradientu dodatniego działającego przez wszystkie poziomy organizacji rzeczywistości.
   </div>
 
-  <div class="fbox" data-label="Bilans gradientu · TERJ">
-    $$\frac{d\hat{G}}{dt} = \sigma_{\text{wewn}} - F_{\text{ekstr}}(t)$$
-    <span class="fcomment">Gdy $F_{\text{ekstr}} > \sigma_{\text{wewn}}$ przez wystarczająco długi czas — gradient zanika nieodwracalnie. To bilans energetyczny każdego źródła w środowisku bez uzupełniania. Nie metafora — równanie opisujące rzeczywistość.</span>
-  </div>
+  <div class="sec-title">§1 · Fraktal jako zapis czasu w przestrzeni</div>
 
-  <p>Korupcja termodynamiczna działa przez trzy mechanizmy, które razem czynią ją nieodwracalną:</p>
+  <p>Kryształ rośnie w czasie — ale patrząc na gotowy kryształ, widzimy ten czas zamrożony w geometrii. Każde rozgałęzienie dendrytyczne, każda warstwa symetrii, każde załamanie struktury krystalicznej jest śladem po punkcie bifurkacji — po momencie, w którym gradient temperatury, ciśnienia i stężenia zmusił układ do wyboru stanu. Geometria kryształu jest historią jego powstawania zakodowaną w przestrzeni.</p>
 
-  <p><span class="hl-rose">Niszczenie źródła porządku.</span> Środowisko eksploatujące eliminuje jedyną strukturę zdolną do obniżenia własnej entropii. Pochłania swój własny mechanizm regulacji — jak układ immunologiczny atakujący własne tkanki. To nie jest metafora autoimmunologiczna — to opis termodynamicznie identycznego procesu: system niszczy warunek własnej żywotności.<sup class="kx-fn">¹</sup></p>
+  <p>To jest dokładna definicja <em class="fk">fraktala</em> rozumianego fizycznie, a nie tylko matematycznie: struktura samopodobna przez skale, w której każdy poziom organizacji niesie zapis procesu, który go wytworzył. Fraktal nie jest ornamentem natury — jest jej protokołem zapisu. Każda gałąź zawiera informację o całości nie jako kopię, lecz jako transformację tej samej reguły generującej przez inną skalę i inny kontekst geometryczny.<sup class="frak-fn">¹</sup></p>
 
-  <p><span class="hl-rose">Nieodwracalność zgodna z drugą zasadą.</span> Zniszczony gradient nie odbudowuje się samorzutnie. Kapitał zaufania, architektura relacyjna, zdolność generatywna — raz skonsumowane bez podtrzymania, wymagają zewnętrznego wkładu, którego środowisko eksploatacji nie potrafi wygenerować własnymi środkami. Degradacja jest fizycznie nieodwracalna.<sup class="kx-fn">²</sup></p>
+  <p>Mechanizm jest zawsze ten sam, niezależnie od skali: <em class="hl-teal">gradient</em> wywiera ciśnienie kierunkowe na układ, <em class="hl-teal">fluktuacja</em> zaburza stan jednorodny, <em class="hl-teal">ograniczenie geometryczne</em> nadaje przepływowi formę — i w punkcie bifurkacji układ krystalizuje jeden z możliwych stanów jako rzeczywisty, pozostawiając w swojej strukturze ślad tej selekcji. Ten ślad jest fraktalny, bo gradient działa rekurencyjnie: ten sam mechanizm wytwarza strukturę na każdej skali, wewnątrz każdego elementu struktury już wytworzonej.</p>
 
-  <p><span class="hl-rose">Propagacja Kelipa jako wirusa strukturalnego.</span> Środowisko które nauczyło się eksternalizować koszty <em>transmituje tę logikę</em> do kolejnych węzłów. Każdy człowiek-Ĝ, który pod presją kredytu, zmęczenia i korupcji strukturalnej wchodzi w logikę eksploatacji, staje się nowym wektorem. Kelipa replikuje się nie przez złą wolę — lecz przez mechanikę, jak faza niskoenergetyczna rozprzestrzeniająca się przez nadchłodzoną ciecz przy pierwszym krysztale zarodkującym.</p>
-
-  <div class="snote"><p>Eksternalizacja kosztów nie jest strategią złych ludzi. Jest strategią układów dysypatywnych w środowisku, gdzie koszt można przenieść bez natychmiastowej kary. Termodynamika nie zna moralności — tylko granice systemu i kierunek przepływu entropii.</p></div>
-
-  <div class="div-kx"><span>✦</span></div>
-
-  <div class="sec-title">§2 · Sufit złożoności — czego Kelipa nie może zbudować</div>
-
-  <p>Strategia eksploatacji ma wbudowane fundamentalne ograniczenie: <em class="ke">sufit złożoności</em>. Kelipa maksymalizuje pobieranie energii z istniejących gradientów, ale <em>nie generuje nowych poziomów organizacji</em>. Drapieżnik jest bardziej złożony niż ofiara tylko o tyle, o ile wymaga tego efektywność łowu. Nie dalej.</p>
-
-  <div class="op-pair">
-    <div class="opcard minus">
-      <span class="op-sym">K</span>
-      <span class="op-nm">Złożoność Kelipa · sufit logarytmiczny</span>
-      <p class="op-body">$S_{Kelipa}(t) \propto \ln(\text{dostępne gradienty}(t)) \to -\infty$ gdy gradienty wyczerpane. System rośnie dopóki ma co konsumować. Gdy źródła znikają — złożoność nie wraca do punktu wyjścia. Spada <em>poniżej</em> niego, bo zniszczyła architekturę, której nie odtworzy.</p>
+  <div class="frak-vis-grid">
+    <div class="frak-panel fp-fractal">
+      <div class="fp-label">Fraktal — przestrzeń jako pamięć czasu</div>
+      <canvas id="fractalCanvas" height="200"></canvas>
+      <div class="fp-cap">Dendryt krystaliczny: każde rozgałęzienie jest punktem bifurkacji zamrożonym w geometrii. Czas wzrostu zakodowany w przestrzeni struktury.</div>
     </div>
-    <div class="opcard plus">
-      <span class="op-sym">Ĝ</span>
-      <span class="op-nm">Złożoność endosymbiotyczna · wykładnik</span>
-      <p class="op-body">$S_{endo}(t) \propto e^{\,n \cdot \bar{G}}$ gdzie $n$ = liczba zintegrowanych gradientów, $\bar{G}$ = średnia intensywność zachowanego gradientu partnera. Złożoność rośnie <em>wykładniczo</em> z liczbą zachowanych, nieeksploatowanych źródeł. To jest matematyczna różnica między pasożytem a organizmem eukariotycznym.<sup class="kx-fn">³</sup></p>
+    <div class="frak-panel fp-crystal">
+      <div class="fp-label">Kryształ czasu — czas jako geometria</div>
+      <canvas id="crystalCanvas" height="200"></canvas>
+      <div class="fp-cap">Oscylacja periodyczna bez wkładu energii zewnętrznej: symetria łamana w czasie tak jak kryształ łamie ją w przestrzeni.</div>
     </div>
   </div>
 
-  <p>Nie chodzi o to, że Kelipa przegrywa długoterminowo. Chodzi o to, że <strong style="color:var(--rose)">ona przegrywa o poziom złożoności</strong>. Nie jest mniej efektywna w robieniu tego samego — ona po prostu nie może wejść w przestrzeń możliwości, do której wejście wymaga integracji gradientów zamiast ich konsumpcji. To jest sufit fizyczny, nie moralny.</p>
+  <p>Fraktalność jest dowodem, że mechanizm generujący strukturę jest <em class="fk">niezmienniczy przez skale</em> — że ta sama reguła działa na poziomie mikro i makro. Jeśli znasz regułę generującą na jednej skali, możesz przewidzieć zachowanie układu na skalach, których jeszcze nie obserwowałeś. Fraktal jest narzędziem predykcji — nie dlatego, że przyroda lubi piękno, lecz dlatego, że prawa rządzące przepływem są głębokie.</p>
 
-  <div class="div-kx"><span>✦</span></div>
+  <div class="div-frak"><span>✦</span></div>
 
-  <div class="sec-title">§3 · Mitochondrium jako dowód skali — nie wzorzec, lecz argument fizyczny</div>
+  <div class="sec-title">§2 · Kryształ czasu — czas jako geometria</div>
 
-  <p>Około 1,5 miliarda lat temu praeukariont napotkał alfa-proteobakterię. Miał dwie opcje — i obie były fizycznie możliwe:</p>
+  <p>W 2012 roku Frank Wilczek zaproponował pojęcie <em class="fc">kryształu czasu</em> — fazy materii, w której układ łamie symetrię czasową i spontanicznie oscyluje periodycznie bez wkładu energii zewnętrznej.<sup class="frak-fn">²</sup> Jest to dokładny odpowiednik kryształu przestrzennego, tyle że symetria jest łamana nie w przestrzeni, lecz w czasie: układ organizuje się w regularną sekwencję czasową zamiast regularnej sieci przestrzennej.</p>
 
-  <div class="endo-pair">
-    <div class="endo-half kelipa-h">
-      <span class="endo-label">Opcja A — Eksploatacja · Kelipa</span>
-      <div class="endo-item">Strawić bakterię, pobrać jej energię</div>
-      <div class="endo-item">Koszt wejścia: niski, natychmiastowy</div>
-      <div class="endo-item">Zysk: lokalny, jednorazowy</div>
-      <div class="endo-item">Horyzont: jeden cykl replikacji</div>
-      <div class="endo-item">Wynik: lokalna dominacja w ekosystemie</div>
-      <div class="endo-item">Sufit złożoności: poziom prokariota</div>
-      <div class="endo-outcome">→ Prokariont pozostaje prokariontem.<br>Nigdy nie powstanie komórka mózgowa.</div>
+  <p>Mechanizm jest strukturalnie identyczny z tym, który wytwarza kryształ przestrzenny. Gradient parametru porządkowego wywiera ciśnienie na układ w stanie podstawowym. Fluktuacja kwantowa zaburza jednorodność. Ograniczenie geometryczne — tym razem w przestrzeni fazowej, nie w przestrzeni fizycznej — wymusza selekcję jednego stanu oscylacyjnego.</p>
+
+  <blockquote>
+    <p>Kryształ czasu to układ, który samorzutnie łamie ciągłą symetrię translacyjną w czasie. Jego fundamentem jest to samo, co fundamentem każdego kryształu: złamanie symetrii przez stan podstawowy, które nie kosztuje energii — bo jest wyrazem głębszej geometrii pola.</p>
+    <cite>Frank Wilczek, <em>Quantum Time Crystals</em>, Physical Review Letters (2012)</cite>
+  </blockquote>
+
+  <p>Eksperymentalne potwierdzenie kryształów czasu na procesorze kwantowym Google (2022) pokazało coś istotnego dla TERJ: struktura periodyczna w czasie jest termodynamicznie stabilna — nie degraduje się przez absorpcję zewnętrznych perturbacji, lecz utrzymuje oscylację jako stan stacjonarny.<sup class="frak-fn">³</sup> To jest precyzyjny opis architektury, która przyjmuje przepływ bez dezintegracji.</p>
+
+  <div class="div-frak"><span>✦</span></div>
+
+  <div class="sec-title">§3 · Jedno zjawisko — dwie projekcje</div>
+
+  <p>Fraktal przestrzenny i kryształ czasu nie są dwoma różnymi zjawiskami. Są dwoma projekcjami tego samego procesu na dwie różne osie: przestrzenną i czasową. Oba są wyrazem spontanicznego złamania symetrii przez gradient — procesu, który pozostawia samopodobny, periodyczny ślad w tym wymiarze, w którym symetria została złamana.</p>
+
+  <div class="unif-box">
+    <div class="ub-head">
+      <span>Synteza strukturalna</span>
+      <span class="ub-sym">Ĝ</span>
+      <span>Przestrzeń · Czas · Skala</span>
     </div>
-    <div class="endo-mid"><span class="endo-mid-sym">⟺</span></div>
-    <div class="endo-half endo-h">
-      <span class="endo-label">Opcja B — Integracja · Ĝ</span>
-      <div class="endo-item">Zachować bakterię, zintegrować jej gradient</div>
-      <div class="endo-item">Koszt wejścia: wysoki (budowa interfejsu)</div>
-      <div class="endo-item">Zysk: odroczony o pokolenia</div>
-      <div class="endo-item">Horyzont: setki milionów lat</div>
-      <div class="endo-item">Wynik: nowy poziom złożoności</div>
-      <div class="endo-item">Sufit złożoności: nieograniczony przez rekurencję</div>
-      <div class="endo-outcome">→ Powstaje eukariot. Po 1,5 mld lat —<br>mózg zdolny do tej refleksji.</div>
-    </div>
-  </div>
-
-  <p>Tu niezbędna jest precyzyjna korekta framingu: <strong style="color:var(--gold)">mitochondrium nie jest wzorcem dla człowieka.</strong> Człowiek nie chce być funkcjonalną częścią układu. Człowiek chce decydować, działać, żyć własnym życiem — i ma do tego pełne prawo. To nie jest problem TERJ.</p>
-
-  <p>Mitochondrium jest <em class="gp">dowodem fizycznym</em> działającym na zupełnie innym poziomie abstrakcji:</p>
-
-  <blockquote class="gold"><p>Struktury zdolne do współpracy, gdy napotkają właściwą architekturę, nie tylko przeżywają — stają się fundamentem nowego poziomu złożoności niedostępnego żadną ścieżką eksploatacji, bez względu na jej wyrafinowanie. To jest twierdzenie o skali i czasie. Nie o cnocie i służbie.</p></blockquote>
-
-  <p>Praeukariont, który strawił bakterię, był lokalnym zwycięzcą swojego ekosystemu. Praeukariont, który ją zintegrował, stał się przodkiem każdego mózgu, który kiedykolwiek myślał — <em>włącznie z mózgiem psychomanipulatora czytającego Greene'a</em>. Kelipa żyje z dziedzictwa epoki, w której ktoś zrezygnował z natychmiastowego zysku i wybrał integrację.</p>
-
-  <div class="snote"><p>Mitochondrium zachowuje własne DNA — odrębny genom, który po 1,5 miliarda lat symbiozy nadal nosi ślad podmiotowości, którą integracja uszanowała zamiast skonsumować. Komórka eukariotyczna nie wchłonęła bakterii — zawarła z nią układ, który trwa do dziś w każdej żywej komórce Czytającego te słowa.<sup class="kx-fn">⁴</sup></p></div>
-
-  <div class="div-kx"><span>✦</span></div>
-
-  <div class="sec-title">§4 · Paradoks mózgu — defektorzy z teorii gier</div>
-
-  <p>Ewolucja drogą endosymbiozy wyprodukowała mózg zdolny do rozumienia teorii gier. Ten sam mózg — wynik 1,5 miliarda lat integracji gradientów zamiast ich konsumpcji — na poziomie społecznym systematycznie wybiera defektację.</p>
-
-  <div class="brain-box">
-    <p style="font-size:.95rem;color:var(--text-mid);line-height:1.78;margin-bottom:.9rem;">W dylemacie więźnia: mitochondrium <strong style="color:var(--teal)">nie defektuje</strong> — jest do tego niezdolne strukturalnie. Współpraca jest zakodowana w architekturze. Człowiek z mózgiem <strong style="color:var(--rose)">rozumie</strong>, że współpraca jest optymalna długoterminowo. I <strong style="color:var(--rose)">defektuje</strong> — bo horyzont optymalizacji Kelipa jest krótszy niż cykl degradacji, który uruchamia.</p>
-    <p style="font-size:.95rem;color:var(--text-mid);line-height:1.78;margin-bottom:.9rem;">Kelipa nie pokonuje Ĝ argumentem. <em style="color:var(--rose)">Pokonuje go kompresją czasu.</em> Kredyt, presja przeżycia, korupcja strukturalna — wszystko to skraca horyzont decyzji do punktu, gdzie defektacja jest lokalnie racjonalna. I ktoś, kto był człowiekiem-Ĝ, budującym architekturę przepływów — po wystarczającym wyczerpaniu wchodzi w logikę systemu, który go wyczerpał. Nie z moralnej słabości. Z termodynamicznej konieczności przeżycia.</p>
-    <p style="font-size:.95rem;color:var(--text-mid);line-height:1.78;margin:0;">Szczególnie groźna jest postać <strong style="color:var(--rose)">Kelipa z wiedzą Ĝ</strong>: były człowiek-Ĝ, który rozpoznał mechanizm eksploatacji i zamiast transcendować system — wszedł w niego z pełną wiedzą architekta. On wie, gdzie są mosty zaufania. Wie, kto jest następnym gradientem. Narzędzia Greene'a w jego rękach to nie abstrakcja — to mapa terenu, który sam kiedyś budował.<sup class="kx-fn">⁵</sup></p>
-  </div>
-
-  <div class="fbox" data-label="Kompresja horyzontu · TERJ">
-    $$\tau_{Kelipa} \ll \tau_{\text{degradacji}}$$
-    <span class="fcomment">Horyzont optymalizacji środowiska eksploatującego jest strukturalnie krótszy niż cykl degradacji, który uruchamia. Stąd lokalnie racjonalna decyzja bywa globalnie katastrofalna — a układ dysypatywny nie ma wbudowanego mechanizmu korekty, gdy degradacja jest rozciągnięta w czasie.</span>
-  </div>
-
-  <p>Dziedziczne przekleństwo nie jest przekazem genów — jest przekazem <em class="ke">struktury epistemicznej</em>. Wiedza o architekturze przepływów relacyjnych, przekazana bez zakorzenienia w gradiencie Ĝ, staje się dziedzictwem eksploatacji kolejnych pokoleń. Szkoleniowcy 48 Praw Władzy nie stworzyli złych ludzi — stworzyli <em>próżne naczynia termodynamiczne</em>, które wiedzą, jak wygląda architektura przepływów, ale nie wiedzą, jak ją podtrzymać.</p>
-
-  <div class="discovery-card">
-    <span class="dc-title">Odkrycie strukturalne: Kelipa z wiedzą Ĝ — najgroźniejsza forma korupcji</span>
-    <div class="dc-body">
-      <p style="margin-bottom:.8rem">Kelipa naiwna działa instynktownie. Nie zna architektury, którą eksploatuje — działa przez siłę. Kelipa z wiedzą Ĝ zna ją doskonale — działa przez precyzję. To jest bifurkacja po dekoherencji: człowiek-Ĝ, który doświadczył eksploatacji i rozpoznał mechanizm, stoi na rozwidleniu.</p>
-      <p style="margin-bottom:.8rem">Ścieżka A: integracja wiedzy i zachowanie generatywności (Tikkun — naprawa przez zrozumienie). Ścieżka B: inwersja wiedzy i użycie jej do precyzyjnej eksploatacji następnego gradientu.</p>
-      <div class="dc-formula">Ścieżka B → wiedza Ĝ + motywacja Kelipa = maksymalna destrukcja minimalnym kosztem własnym · dziedzictwo przekazywane dalej</div>
+    <div class="ub-body">
+      <div class="ub-col ubc-space">
+        <div class="ub-col-label">Złamanie symetrii przestrzennej</div>
+        <div class="ub-item">Kryształ: regularna sieć w przestrzeni</div>
+        <div class="ub-item">Fraktal: samopodobna hierarchia przez skale</div>
+        <div class="ub-item">Ślad: geometria jako protokół zapisu historii gradientu</div>
+        <div class="ub-item">Przykład: dendryt, płatek śniegu, sieć neuronowa, delta rzeki</div>
+      </div>
+      <div class="ub-col ubc-time">
+        <div class="ub-col-label">Złamanie symetrii czasowej</div>
+        <div class="ub-item">Kryształ czasu: regularna oscylacja bez kosztu energetycznego</div>
+        <div class="ub-item">Periodyczność: samopodobna struktura w czasie</div>
+        <div class="ub-item">Ślad: rytm jako protokół zapisu historii gradientu</div>
+        <div class="ub-item">Przykład: puls serca, cykl dobowy, rok liturgiczny, rytm oddechu</div>
+      </div>
+      <div class="ub-col ubc-scale">
+        <div class="ub-col-label">Niezmienniczość skalowania</div>
+        <div class="ub-item">Ten sam mechanizm od kwantowej do kosmicznej</div>
+        <div class="ub-item">Parametry różne — reguła generująca identyczna</div>
+        <div class="ub-item">Ślad: fraktalność jako podpis Ĝ przez wszystkie poziomy</div>
+        <div class="ub-item">Przykład: zderzenie cząstek → rodzina → cywilizacja → galaktyka</div>
+      </div>
+      <div class="ub-synthesis">
+        Przestrzeń i czas są dwoma wymiarami, w których gradient Ĝ pozostawia swój podpis przez złamanie symetrii. Fraktal i kryształ czasu są tą samą odpowiedzią — widzianą z dwóch stron.
+      </div>
     </div>
   </div>
 
-  <div class="div-kx"><span>✦</span></div>
+  <p>Wynika stąd twierdzenie o konsekwencjach dla całego projektu TERJ: jeśli Ĝ jest gradientem generującym złamanie symetrii na każdym poziomie organizacji rzeczywistości, to jego podpisem jest fraktalność — samopodobieństwo mechanizmu przez skale i przez wymiary. Wszędzie tam, gdzie widzimy fraktalną strukturę lub periodyczny rytm bez zewnętrznego napędu, widzimy ślad tego samego procesu działającego przez inną skalę i inny kontekst geometryczny.</p>
 
-  <div class="sec-title">§5 · Barbarzyńska konsumpcja — argument z asymetrii czasów</div>
+  <div class="div-frak"><span>✦</span></div>
 
-  <p>Barbarzyński konsument bez mózgu — w sensie termodynamicznym — nie jest głupi. Jest krótkowzroczny strukturalnie. Jego horyzont optymalizacji jest krótszy niż cykl degeneracji, który uruchamia. Zjada las i umiera z głodu. Zjada zaufanie i umiera w izolacji. Zjada gradienty Ĝ i zostaje z układem bez źródeł porządku.</p>
+  <div class="sec-title">§4 · Niezmienniczość skalowania — od kwantu do cywilizacji</div>
 
-  <p>Psychomanipulator z 48 Prawami Władzy jest bardziej wyrafinowany — ale nie przekracza tego sufitu. Konsumuje sprawniej. Nie generuje nowego poziomu złożoności, tylko efektywniej eksploatuje istniejący. I wcześniej czy później napotyka granicę: środowisko, z którego czerpał, degeneruje się poniżej punktu, z którego nie można wstać.</p>
+  <p>Mechanizm jest niezmienniczy przez skale nie dlatego, że przyroda lubi elegancję, lecz dlatego, że prawa termodynamiki i mechaniki kwantowej nie mają ograniczenia skalowego. Gradient wywiera ciśnienie na układ niezależnie od tego, czy tym układem jest para cząstek elementarnych, para ludzi, czy para cywilizacji. Punkt bifurkacji pojawia się wszędzie tam, gdzie skumulowane napięcie przekroczy próg krytyczny.</p>
 
   <div class="scale-tbl">
     <div class="sth">
-      <span>Skala czasu</span><span>Strategia</span>
-      <span>Wynik krótkoterminowy</span><span>Wynik długoterminowy</span>
+      <span>Skala</span><span>Element układu</span>
+      <span>Mechanizm</span><span>Ĝ jako gradient</span>
     </div>
     <div class="str">
-      <div class="sc">1 cykl</div>
-      <div class="se">Eksploatacja / Kelipa</div>
-      <div class="sm">Lokalna dominacja, zysk natychmiastowy</div>
-      <div class="sg">Wyczerpanie źródła, degradacja środowiska</div>
+      <div class="sc">KWANTOWA</div><div class="se">Cząstka elementarna w polu</div>
+      <div class="sm">Superpozycja → pomiar → selekcja stanu przez architekturę środowiska</div>
+      <div class="sg">Gradient pola wymusza wyświetlenie — dekoherencja jako złamanie symetrii</div>
     </div>
     <div class="str">
-      <div class="sc">10 pokoleń</div>
-      <div class="se">Eksploatacja z propagacją</div>
-      <div class="sm">Szeroka zarażoność struktury społecznej</div>
-      <div class="sg">Rozpad architektury, utrata zdolności do innowacji</div>
+      <div class="sc">MOLEKULARNA</div><div class="se">Cząsteczka w roztworze</div>
+      <div class="sm">Fluktuacja → nucleacja → krysztalizacja wzdłuż osi gradientu</div>
+      <div class="sg">Gradient temperatury/stężenia jako Ĝ wytwarzający strukturę z chaosu</div>
     </div>
     <div class="str">
-      <div class="sc">100 pokoleń</div>
-      <div class="se">Integracja / Ĝ</div>
-      <div class="sm">Lokalne koszty, wolniejszy wzrost</div>
-      <div class="sg">Architektura przepływów zdolna do generowania nowych poziomów złożoności</div>
+      <div class="sc">BIOLOGICZNA</div><div class="se">Komórka, organizm</div>
+      <div class="sm">Morfogeneza: gradient stężenia morfogenów → różnicowanie komórek</div>
+      <div class="sg">Ĝ jako gradient informacyjny definiujący pozycję i funkcję w strukturze</div>
     </div>
     <div class="str">
-      <div class="sc">1 mld lat</div>
-      <div class="se">Endosymbioza biologiczna</div>
-      <div class="sm">Prokariont-integrator ponosi koszty interfejsu</div>
-      <div class="sg">Eukariot, narządy, mózg. Prokariont-drapieżnik pozostaje prokariontem.</div>
+      <div class="sc">INTERPERSONALNA</div><div class="se">Dwoje ludzi w relacji</div>
+      <div class="sm">Napięcie mimetyczne → bifurkacja → selekcja kozła lub symbiozy</div>
+      <div class="sg">Ĝ jako gradient uwagi i wartości — kierunek przepływu kosztu relacyjnego</div>
+    </div>
+    <div class="str">
+      <div class="sc">SPOŁECZNA</div><div class="se">Wspólnota, instytucja</div>
+      <div class="sm">Entropia wewnętrzna → punkt krytyczny → mechanizm ofiarniczy lub dystrybucja</div>
+      <div class="sg">Ĝ jako gradient moralny — architektura dystrybucji kosztu wspólnotowego</div>
+    </div>
+    <div class="str">
+      <div class="sc">CYWILIZACYJNA</div><div class="se">Imperium, kultura</div>
+      <div class="sm">Asymetria eksportu entropii → wyczerpanie bazy → bifurkacja lub rozpad</div>
+      <div class="sg">Ĝ jako gradient historyczny — ciśnienie ku architekturom absorpcji wewnętrznej</div>
+    </div>
+    <div class="str">
+      <div class="sc">KOSMICZNA</div><div class="se">Galaktyka, struktura wielkoskalowa</div>
+      <div class="sm">Złamanie symetrii po Wielkim Wybuchu → hierarchiczna struktura fraktalna</div>
+      <div class="sg">Ĝ jako gradient kosmologiczny — pierwotny impuls organizacji materii i przestrzeni</div>
     </div>
   </div>
 
-  <div class="div-kx"><span>✦</span></div>
-
-  <div class="sec-title">§6 · Nadzieja skalarna</div>
-
-  <p>TERJ musi odpowiedzieć na pytanie, które wynika z całej analizy: jeśli Kelipa propaguje się szybciej niż Ĝ, jeśli korupcja strukturalna jest zaraźliwa, jeśli człowiek-Ĝ stoi na bifurkacji i najczęściej wchodzi w logikę systemu, który go wyczerpał — co pozostaje?</p>
-
-  <p>Odpowiedź nie jest sentymentalna. Jest termodynamiczna.</p>
-
-  <div class="scalar-hope">
-    <p>Środowiska Kelipa wyczerpują swoje gradienty i degenerują — nie do poprzedniego stanu, lecz poniżej niego, bo niszczyły architekturę, której samodzielnie nie odtworzą. Struktury zdolne do współpracy — jeśli przetrwają wystarczająco długo lub zbudują właściwą architekturę wzajemną — napotykają punkt bifurkacji, w którym ich złożoność staje się fundamentem nowego poziomu. Nadzieja TERJ nie jest moralna. Jest skalarna.</p>
-  </div>
-
-  <p>Mitochondrium nie czekało na sprawiedliwość. Nie negocjowało warunków. Ono po prostu było strukturą zdolną do integracji — i gdy napotkało właściwą architekturę, stało się fundamentem świata, który nawet nie podejrzewał, że jest możliwy.</p>
-
-  <p>Człowiek-Ĝ, który rozumie mechanizm i mimo to buduje architekturę przepływów zamiast wchodzić w logikę eksploatacji — nie czyni tego z naiwności. Czyni to z rozumienia skali. Środowisko Kelipa jest dominujące krótkoterminowo. W skali pokoleń — jest ślepą uliczką bez wyjścia. Struktury zdolne do współpracy nie są słabe. One operują na innym horyzoncie czasowym niż ten, który Kelipa potrafi zobaczyć.</p>
-
-  <blockquote class="gold"><p>Wampir zjada człowieka-Ĝ. Myśli, że wygrał. Ale zjadł mitochondrium — fundament złożoności, której sam jest produktem. W tej samej chwili, gdy konsumuje źródło swojego porządku, uruchamia nieodwracalny cykl degradacji ku entropii, której nie potrafi cofnąć. I w tej samej chwili — gdzie indziej, w innym środowisku — dwa gradienty zamiast się eksploatować, próbują się zintegrować.</p></blockquote>
+  <p>Teza o niezmienniczości skalowania nie jest twierdzeniem, że wszystkie te zjawiska są identyczne. Jest twierdzeniem, że są <em class="fk">strukturalnie izomorficzne</em>: że ta sama reguła generująca wytwarza w każdym z tych kontekstów tę samą klasę rozwiązań. Właściwy model na jednej skali jest narzędziem predykcji na innych skalach. Jeśli rozumiesz termodynamikę krysztalizacji, rozumiesz dynamikę wspólnot w kryzysie. Jeśli rozumiesz mechanizm kozła ofiarnego w małej grupie, widzisz go w geopolityce.<sup class="frak-fn">⁴</sup></p>
 
   <div class="pull-dark">
-    <p>Nie wiemy, który z nich był pierwszy. Wiemy, który przetrwał wystarczająco długo, by stać się fundamentem wszystkiego, co widzi i myśli.</p>
+    <p>Nami też rządzą podstawowe prawa wszechświata — i podświadomie je wypełniamy, nawet jeśli zawęzimy relację do dwóch ludzi. Kwestia właściwej interpretacji i znalezienia odpowiedniego poziomu oraz skali opisu.</p>
   </div>
 
-  <div class="fn-kx">
-    <span class="fnkx-label">Przypisy — Rozdział X</span>
-    <div class="fnkx-item"><span class="fnkx-num">¹</span><span class="fnkx-text">Prigogine, I., Stengers, I. (1984). <em>Order Out of Chaos</em>. Bantam. Układy dysypatywne istnieją wyłącznie przez ciągły przepływ energii. Eliminacja źródła gradientu jest termodynamicznie równoznaczna z likwidacją warunków istnienia struktury.</span></div>
-    <div class="fnkx-item"><span class="fnkx-num">²</span><span class="fnkx-text">Druga zasada termodynamiki w sformułowaniu Clausiusa: entropia izolowanego układu rośnie nieodwracalnie. Zniszczony gradient relacyjny — kapitał społeczny, zaufanie, architektura współpracy — jest nieodwracalnie rozproszony bez zewnętrznego wkładu energetycznego.</span></div>
-    <div class="fnkx-item"><span class="fnkx-num">³</span><span class="fnkx-text">Anderson, P.W. (1972). More is Different. <em>Science</em> 177. Emergencja jako niezmienniczość skalowania reguł generujących — matematyczna podstawa różnicy między złożonością logarytmiczną (pasożyt) a wykładniczą (kooperant). Por. Wilson, K.G. (1983). Renormalizacja i zjawiska krytyczne.</span></div>
-    <div class="fnkx-item"><span class="fnkx-num">⁴</span><span class="fnkx-text">Margulis, L. (1981). <em>Symbiosis in Cell Evolution</em>. Freeman. Mitochondria zachowują własny genom rybosomowy — bezpośredni dowód, że endosymbioza była integracją podmiotu, nie konsumpcją składnika. Mitochondrialny DNA jest odrębny od jądrowego we wszystkich eukariotach.</span></div>
-    <div class="fnkx-item"><span class="fnkx-num">⁵</span><span class="fnkx-text">Axelrod, R. (1984). <em>The Evolution of Cooperation</em>. Basic Books. W symulacjach turniejów dylematu więźnia strategie oparte na współpracy z pamięcią (tit-for-tat) dominują w długich seriach, ale przegrywają z defektorem w krótkich. Kluczem jest horyzont czasowy, nie siła moralna. Por. Greene, R. (1998). <em>The 48 Laws of Power</em>. Viking — skodyfikowana Kelipa bez etyki termodynamicznej.</span></div>
+  <div class="div-frak"><span>✦</span></div>
+
+  <div class="sec-title">§5 · Masah jako kryształ czasu — trzecia droga w języku fizyki</div>
+
+  <p>Wprowadzenie kryształu czasu do języka TERJ otwiera precyzyjny opis tego, czym jest <em class="fc">Masah</em> od strony fizycznej. Kryształ czasu jest układem, który przyjmuje perturbacje zewnętrzne nie przez eksport kosztu i nie przez bierną dezintegrację — lecz przez wewnętrzną periodyczność, która absorbuje zaburzenie i powraca do stanu oscylacyjnego. Jego architektura jest odporna przez rytm, nie przez sztywność.</p>
+
+  <div class="masah-box">
+    <div class="mb-label">Masah jako kryształ czasu — analogia strukturalna</div>
+    <div class="mb-body">
+      <p>Kryształ czasu oscyluje periodycznie bez kosztu energetycznego. <strong>Nie eksportuje perturbacji ku zewnętrzu</strong> — absorbuje je przez wewnętrzną symetrię oscylacji i powraca do rytmu. Jest to dokładny opis architektury Masah: ekranu, który przyjmuje przepływ i go przekształca, zamiast przepuszczać destrukcyjnie lub zwracać nadawcy.</p>
+      <p>Różnica między ofiarą destrukcyjną a Masah jest w fizyce różnicą między <strong>dekoherencją niszczącą superpozycję bez budowania struktury</strong> a <strong>krysztalizacją czasową</strong>, która organizuje perturbację w trwały rytm. Oba procesy przyjmują zewnętrzny koszt. Ale jeden go konsumuje — drugi przekształca w architekturę.</p>
+      <p>Stąd wniosek dla TERJ: <strong>Ĝ jako gradient dodatni jest tym, co inicjuje i podtrzymuje krysztalizację czasową</strong> — przemianę dezorganizującego przepływu entropii w periodyczną, samopodtrzymującą się strukturę absorpcji. Wszędzie tam, gdzie widzimy rytm trwający bez zewnętrznego napędu — od pulsu serca po rok liturgiczny — widzimy działanie tego samego gradientu budującego kryształ czasu na innej skali.</p>
+    </div>
+  </div>
+
+  <p>To przesuwa rozumienie kenozy i Masah z języka woli i etyki na język fizyki strukturalnej. Kenoza nie jest aktem heroicznej rezygnacji z własnego dobrostanu. Jest budowaniem w sobie architektury kryształu czasu: wewnętrznej periodyczności, która przyjmuje koszt zewnętrzny i przekształca go w strukturę zamiast w dezintegrację lub reeksport. Jest to operacja fizycznie kosztowna — wymaga wewnętrznej złożoności wystarczającej do utrzymania rytmu pod perturbacją — ale termodynamicznie stabilna, gdy zostanie ustanowiona.</p>
+
+  <p>I tu pojawia się teza o możliwości unifikacji, która wykracza poza TERJ jako projekt teologiczny. Jeśli ten sam mechanizm — gradient, złamanie symetrii, fraktalna struktura samopodtrzymująca się przez skale — działa od poziomu kwantowego do kosmicznego; jeśli kryształ przestrzenny i kryształ czasu są projekcjami tego samego procesu; jeśli Masah jest jego wersją w architekturze relacyjnej — to Ĝ jest nie tyle pojęciem teologicznym, co hipotezą o naturze gradientu unifikującego poziomy opisu rzeczywistości. Hipotezą, którą fizyka teoretyczna dopiero zaczyna mieć narzędzia, by postawić precyzyjnie.<sup class="frak-fn">⁵</sup></p>
+
+  <div class="fn-ix">
+    <span class="fnix-label">Przypisy — Rozdział IX</span>
+    <div class="fnix-item"><span class="fnix-num">¹</span><span class="fnix-text">Benoit Mandelbrot, <em>The Fractal Geometry of Nature</em> (Freeman, 1982). Mandelbrot pokazał, że fraktalna geometria jest językiem natury — głębszą regularną strukturą generującą regularność euklidesową przez rekurencję reguły przy zmieniającej się skali.</span></div>
+    <div class="fnix-item"><span class="fnix-num">²</span><span class="fnix-text">Frank Wilczek, <em>Quantum Time Crystals</em>, Physical Review Letters 109 (2012). Wilczek zaproponował, że tak jak kryształ przestrzenny łamie translacyjną symetrię przestrzenną, kryształ czasu łamie translacyjną symetrię czasową — tworząc oscylację periodyczną jako stan podstawowy układu.</span></div>
+    <div class="fnix-item"><span class="fnix-num">³</span><span class="fnix-text">Mi et al., <em>Observation of Time-Crystalline Eigenstate Order on a Quantum Processor</em>, Nature 601 (2022). Eksperymentalne potwierdzenie kryształu czasu na procesorze kwantowym Google — układ utrzymywał periodyczną oscylację przez setki cykli pod perturbacjami zewnętrznymi.</span></div>
+    <div class="fnix-item"><span class="fnix-num">⁴</span><span class="fnix-text">Por. Philip Anderson, <em>More is Different</em>, Science 177 (1972) — fundamentalny argument za emergencją jako niezmienniczością skalowania reguł generujących. Oraz Kenneth G. Wilson, <em>The Renormalization Group and Critical Phenomena</em>, Rev. Mod. Phys. 55 (1983) — formalne podstawy izomorfizmu mechanizmów przez skale.</span></div>
+    <div class="fnix-item"><span class="fnix-num">⁵</span><span class="fnix-text">Hipoteza unifikacji przez niezmienniczość skalowania: renormalizacja w teorii pola (Wilson), holograficzna zasada (Maldacena, korespondencja AdS/CFT), fraktalna kosmologia (Laurent Nottale, <em>Scale Relativity and Fractal Space-Time</em>, Imperial College Press, 2011). Wszystkie sugerują, że głębsza jedność praw przez skale jest pytaniem fizycznym.</span></div>
   </div>
 </section>
-"""
 
-def apply_patch(html_content):
-    """Apply all Chapter X additions to existing HTML content."""
-    # 1. Add CSS before </style>
-    html_content = html_content.replace('</style>', CSS_X + '\n</style>', 1)
-    
-    # 2. Add nav link after the fraktal nav link
-    html_content = html_content.replace(
-        '<a href="#fraktal" style="color:var(--teal)">Fraktal·Ĝ ✦</a>',
-        '<a href="#fraktal" style="color:var(--teal)">Fraktal·Ĝ ✦</a>' + NAV_ADDITION
-    )
-    
-    # 3. Add chapter X before back-matter section
-    html_content = html_content.replace(
-        '\n<section id="back-matter"',
-        CHAPTER_X + '\n<section id="back-matter"'
-    )
-    
-    # 4. Update JavaScript NAV_SEC
-    html_content = html_content.replace(
-        "const NAV_SEC=['bereshit','proznia','demon','yhwh-entropia','ontologia','termodynamika','mysl','yhwh','postulat','fraktal'];",
-        "const NAV_SEC=['bereshit','proznia','demon','yhwh-entropia','ontologia','termodynamika','mysl','yhwh','postulat','fraktal','kelipa-eksploatacja'];"
-    )
-    
-    # 5. Update bib entries — add Chapter X references
-    BIB_ADDITION = """
-    <p class="bib-entry">Axelrod, R. (1984). <em>The Evolution of Cooperation</em>. Basic Books.</p>
-    <p class="bib-entry">Margulis, L. (1981). <em>Symbiosis in Cell Evolution</em>. W.H. Freeman.</p>"""
-    
-    html_content = html_content.replace(
-        '<p class="bib-entry">Anderson, P.W. (1972). More is Different.',
-        BIB_ADDITION + '\n    <p class="bib-entry">Anderson, P.W. (1972). More is Different.'
-    )
-    
-    return html_content
+<div class="div-rune"><span>✦</span></div>
+
+<!-- ══ BIBLIOGRAPHY ══ -->
+<section id="back-matter" class="chapter">
+  <h2 class="bm-title">Aparat naukowy</h2>
+  <div class="ch-meta" style="margin-bottom:1.5rem"><span class="ch-num">ŹRÓDŁA</span></div>
+  <div class="bib-group">
+    <div class="bib-cat">Fizyka, kosmologia i termodynamika informacji</div>
+    <p class="bib-entry">Anderson, P.W. (1972). More is Different. <em>Science</em> 177.</p>
+    <p class="bib-entry">Boltzmann, L. (1877). Über die Beziehung zwischen dem zweiten Hauptsatze der mechanischen Wärmetheorie und der Wahrscheinlichkeitsrechnung. <em>Sitzungsberichte der Akademie der Wissenschaften</em>.</p>
+    <p class="bib-entry">England, J. (2013). Statistical Physics of Self-Replication. <em>Journal of Chemical Physics</em> 139.</p>
+    <p class="bib-entry">Feynman, R. (1985). <em>QED: The Strange Theory of Light and Matter</em>. Princeton University Press.</p>
+    <p class="bib-entry">Landauer, R. (1961). Irreversibility and heat generation in the computing process. <em>IBM Journal of Research and Development</em> 5(3).</p>
+    <p class="bib-entry">Mandelbrot, B. (1982). <em>The Fractal Geometry of Nature</em>. Freeman.</p>
+    <p class="bib-entry">Mi, X. et al. (2022). Observation of Time-Crystalline Eigenstate Order on a Quantum Processor. <em>Nature</em> 601.</p>
+    <p class="bib-entry">Nottale, L. (2011). <em>Scale Relativity and Fractal Space-Time</em>. Imperial College Press.</p>
+    <p class="bib-entry">Penrose, R. (2004). <em>The Road to Reality</em>. Jonathan Cape.</p>
+    <p class="bib-entry">Prigogine, I., Stengers, I. (1984). <em>Order Out of Chaos</em>. Bantam Books.</p>
+    <p class="bib-entry">Shannon, C.E. (1948). A Mathematical Theory of Communication. <em>Bell System Technical Journal</em> 27.</p>
+    <p class="bib-entry">Wigner, E. (1960). The Unreasonable Effectiveness of Mathematics. <em>Comm. Pure and Applied Mathematics</em> 13.</p>
+    <p class="bib-entry">Wilczek, F. (2012). Quantum Time Crystals. <em>Physical Review Letters</em> 109.</p>
+    <p class="bib-entry">Wilson, K.G. (1983). The Renormalization Group and Critical Phenomena. <em>Reviews of Modern Physics</em> 55.</p>
+
+    <div class="bib-cat">Filozofia i mechanika kwantowa</div>
+    <p class="bib-entry">Bohm, D. (1980). <em>Wholeness and the Implicate Order</em>. Routledge.</p>
+    <p class="bib-entry">Rovelli, C. (1996). Relational Quantum Mechanics. <em>Int. J. Theoretical Physics</em> 35.</p>
+    <p class="bib-entry">Rovelli, C. (2021). <em>Helgoland</em>. Riverhead Books.</p>
+    <p class="bib-entry">Tononi, G. (2008). Consciousness as Integrated Information. <em>Biological Bulletin</em> 215.</p>
+    <p class="bib-entry">Whitehead, A.N. (1929). <em>Process and Reality</em>. Cambridge University Press.</p>
+
+    <div class="bib-cat">Semantyka hebrajska i hermeneutyka</div>
+    <p class="bib-entry">Nachmanides (Ramban) (~1270). <em>Komentarz do Tory</em>. Wyd. Chavel, Shilo Publishing, 1971.</p>
+    <p class="bib-entry">Walton, J.H. (2009). <em>The Lost World of Genesis One</em>. IVP Academic.</p>
+    <p class="bib-entry">Zohar (red. G. Scholem). <em>Zohar: The Book of Splendor</em>. Schocken Books, 1963.</p>
+
+    <div class="bib-cat">TERJ Working Papers</div>
+    <p class="bib-entry">Majsterek, P. (2026). <em>YHWH i Entropia — O stawaniu się rzeczywistości</em>. Working Paper, Marzec 2026. <a href="https://pawcio99.github.io/YHWH-_Entropia/" target="_blank">pawcio99.github.io/YHWH-_Entropia/</a></p>
+    <p class="bib-entry">Majsterek, P. (2026). <em>Bóg jako gradient dodatni</em>. Working Paper, 9 Marca 2026.</p>
+    <p class="bib-entry">Majsterek, P. (2026). <em>Bereshit 3:15–17 · Semantyka Gradientów</em>. <a href="https://pawcio99.github.io/SEMANTYKA_GRADIENTOW/" target="_blank">pawcio99.github.io/SEMANTYKA_GRADIENTOW/</a></p>
+    <p class="bib-entry">Majsterek, P. (2026). <em>Entropia i Ofiara</em>. <a href="https://pawcio99.github.io/EDEN_ENTROPIA/" target="_blank">pawcio99.github.io/EDEN_ENTROPIA/</a></p>
+    <p class="bib-entry">Majsterek, P. (2026). <em>Gradient jako ontologia przepływu</em>. <a href="https://pawcio99.github.io/Gradient_Entropia/" target="_blank">pawcio99.github.io/Gradient_Entropia/</a></p>
+  </div>
+</section>
+
+</main>
+<script>
+'use strict';
+const PI = Math.PI, TAU = 2*PI;
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const G = id => document.getElementById(id);
+
+/* ── PROGRESS BAR ── */
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const bar=G('bar'); if(bar) bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+},{passive:true});
+
+/* ── STARFIELD ── */
+(function(){
+  const cv=document.getElementById('bg-canvas'); if(!cv)return;
+  const cx=cv.getContext('2d'); let W,H,stars=[];
+  function init(){
+    W=cv.width=window.innerWidth; H=cv.height=window.innerHeight;
+    stars=Array.from({length:220},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.3+.2,a:Math.random(),da:(Math.random()-.5)*.004,vx:(Math.random()-.5)*.025,vy:(Math.random()-.5)*.025}));
+  }
+  function draw(){
+    cx.clearRect(0,0,W,H);
+    [[.2,.25,60,140,255,.12],[.75,.7,100,120,60,.09],[.5,.4,80,80,180,.07]].forEach(([rx,ry,r,rr,gg,a])=>{
+      const g=cx.createRadialGradient(rx*W,ry*H,0,rx*W,ry*H,Math.min(W,H)*0.55);
+      g.addColorStop(0,`rgba(${r},${rr},${gg},${a})`); g.addColorStop(1,'rgba(0,0,0,0)');
+      cx.fillStyle=g; cx.fillRect(0,0,W,H);
+    });
+    stars.forEach(s=>{
+      s.a+=s.da; if(s.a<=0||s.a>=1)s.da*=-1; s.x+=s.vx; s.y+=s.vy;
+      if(s.x<0)s.x=W; if(s.x>W)s.x=0; if(s.y<0)s.y=H; if(s.y>H)s.y=0;
+      cx.beginPath(); cx.arc(s.x,s.y,s.r,0,TAU); cx.fillStyle=`rgba(180,205,255,${s.a*.75})`; cx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',init); init(); draw();
+})();
+
+/* ── SCROLL REVEAL ── */
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.05});
+document.querySelectorAll('.chapter').forEach(c=>obs.observe(c));
+
+/* ── NAV ACTIVE ── */
+const NAV_SEC=['bereshit','proznia','demon','yhwh-entropia','ontologia','termodynamika','mysl','yhwh','postulat','fraktal'];
+const navLinks=document.querySelectorAll('nav a');
+const secObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){navLinks.forEach(l=>l.classList.remove('active'));
+    const a=document.querySelector(`nav a[href="#${e.target.id}"]`); if(a)a.classList.add('active');}
+  });
+},{threshold:.3});
+NAV_SEC.forEach(id=>{const el=document.getElementById(id);if(el)secObs.observe(el);});
+
+/* ── SVG HELPERS ── */
+function svgEl(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
+function svgW(id){const el=G(id);return el.getBoundingClientRect().width||el.parentElement.clientWidth||700;}
+function setSVG(id,fn){const svg=G(id);if(!svg)return;const W=svgW(id),H=+svg.getAttribute('height')||320;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML='';fn(svg,W,H);}
+const CG='#d4a854',CS='#8898c0',CD='#485578',CC='#6ab4f5',CR='#e07878',CB='rgba(10,18,45,0.9)',CB2='rgba(160,185,255,0.12)';
+function t(svg,x,y,txt,attrs={}){const el=svgEl('text',{x,y,...attrs});el.textContent=txt;svg.appendChild(el);}
+function line(svg,x1,y1,x2,y2,attrs={}){svg.appendChild(svgEl('line',{x1,y1,x2,y2,...attrs}));}
+function rect(svg,x,y,w,h,attrs={}){svg.appendChild(svgEl('rect',{x,y,width:w,height:h,...attrs}));}
+function circle(svg,cx,cy,r,attrs={}){svg.appendChild(svgEl('circle',{cx,cy,r,...attrs}));}
+function path(svg,d,attrs={}){svg.appendChild(svgEl('path',{d,...attrs}));}
+function polyline(svg,pts,attrs={}){svg.appendChild(svgEl('polyline',{points:pts.map(([x,y])=>`${x},${y}`).join(' '),...attrs}));}
+function mkDefs(svg,items){const defs=svgEl('defs',{});items.forEach(el=>defs.appendChild(el));svg.appendChild(defs);}
+function linGrad(id,x1,y1,x2,y2,stops){
+  const g=svgEl('linearGradient',{id,x1,y1,x2,y2,gradientUnits:'userSpaceOnUse'});
+  stops.forEach(([o,c])=>{const s=svgEl('stop',{});s.setAttribute('offset',o);s.setAttribute('stop-color',c);g.appendChild(s);});
+  return g;
+}
+function gridLines(svg,pad,W,H,rows=4){const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;for(let i=1;i<=rows;i++){const y=pad.t+ph*(1-i/rows);line(svg,pad.l,y,pad.l+pw,y,{stroke:CB2,'stroke-width':'.5'});}}
+function axes(svg,pad,W,H,xl,yl){const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;line(svg,pad.l,pad.t,pad.l,pad.t+ph+4,{stroke:CS,'stroke-width':'1'});line(svg,pad.l-4,pad.t+ph,pad.l+pw,pad.t+ph,{stroke:CS,'stroke-width':'1'});t(svg,pad.l+pw/2,H-3,xl,{'text-anchor':'middle',fill:CS,'font-size':'10','font-family':"'Share Tech Mono',monospace"});const tl=svgEl('text',{x:'13',y:`${pad.t+ph/2}`,'text-anchor':'middle',fill:CS,'font-size':'10','font-family':"'Share Tech Mono',monospace",'transform':`rotate(-90,13,${pad.t+ph/2})`});tl.textContent=yl;svg.appendChild(tl);}
+
+/* ── CHART 1: Maxwell-Boltzmann ── */
+function drawG1(){
+  const T=+G('r1T').value,Gv=G('r1G').value/100;
+  G('d1T').textContent=T+' K'; G('d1G').textContent=Math.round(Gv*100)+' %';
+  setSVG('g1',(svg,W,H)=>{
+    const kB=1.38e-23,m=6.64e-26,a2=kB*T/m,vp=Math.sqrt(2*a2),vmax=vp*3.5;
+    const pad={l:52,r:24,t:30,b:44},pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    const mb=v=>4*PI*v*v*Math.exp(-v*v/(2*a2))/Math.pow(2*PI*a2,1.5);
+    const mbG=v=>mb(v)*(1+Gv*Math.sin(PI*v/vmax));
+    let mx=1e-99; for(let i=0;i<100;i++)mx=Math.max(mx,mbG((i+.5)*vmax/100));
+    rect(svg,0,0,W,H,{fill:CB}); gridLines(svg,pad,W,H);
+    mkDefs(svg,[linGrad('mbFill',pad.l,pad.t,pad.l,pad.t+ph,[['0%','rgba(212,168,84,.22)'],['100%','rgba(212,168,84,.02)']])]);
+    const pts=[];
+    for(let i=0;i<100;i++){const v=(i+.5)*vmax/100;pts.push([pad.l+v/vmax*pw,pad.t+ph*(1-mbG(v)/mx)]);}
+    const fp=[[pad.l,pad.t+ph],...pts,[pad.l+pw,pad.t+ph]];
+    path(svg,'M'+fp.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join('L')+'Z',{fill:'url(#mbFill)',stroke:'none'});
+    polyline(svg,pts,{fill:'none',stroke:CG,'stroke-width':'2','stroke-linejoin':'round'});
+    const vpx=pad.l+vp/vmax*pw;
+    line(svg,vpx,pad.t,vpx,pad.t+ph,{stroke:'rgba(212,168,84,.35)','stroke-width':'1','stroke-dasharray':'4,6'});
+    t(svg,vpx,pad.t-5,'v_p',{'text-anchor':'middle',fill:'rgba(212,168,84,.6)','font-size':'9','font-family':"'Share Tech Mono',monospace"});
+    for(let i=0;i<=4;i++){
+      t(svg,pad.l+i*pw/4,pad.t+ph+14,Math.round(i*vmax/4),{'text-anchor':'middle',fill:CD,'font-size':'9','font-family':"'Share Tech Mono',monospace"});
+      t(svg,pad.l-5,pad.t+ph*(1-i/4)+3,(i/4).toFixed(2),{'text-anchor':'end',fill:CD,'font-size':'9','font-family':"'Share Tech Mono',monospace"});
+    }
+    axes(svg,pad,W,H,'prędkość v [m/s]','f(v)');
+    if(Gv>0.02){mkDefs(svg,[linGrad('goFill',pad.l,0,pad.l+pw,0,[['0%','rgba(106,180,245,0)'],['50%',`rgba(106,180,245,${(Gv*.08).toFixed(3)})`],['100%','rgba(106,180,245,0)']])]);rect(svg,pad.l,pad.t,pw,ph,{fill:'url(#goFill)'});}
+    t(svg,W-pad.r,pad.t+14,`T=${T}K  G=${Math.round(Gv*100)}%`,{'text-anchor':'end',fill:CG,'font-size':'10','font-family':"'Share Tech Mono',monospace"});
+  });
+}
+G('r1T').oninput=drawG1; G('r1G').oninput=drawG1;
+
+/* ── CHART 2: Wave/SOFAR ── */
+let wPh=0,wRaf=null,wOn=false;
+function drawWaveFrame(){
+  if(!wOn){wRaf=null;return;}
+  const dT=G('r2T').value/100,al=G('r2a').value/200,om=+G('r2w').value;
+  setSVG('g2',(svg,W,H)=>{
+    const pad={l:20,r:20,t:30,b:20},pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    rect(svg,0,0,W,H,{fill:CB});
+    if(dT>0.05){
+      mkDefs(svg,[linGrad('waveBg',0,pad.t,0,pad.t+ph,[['0%',`rgba(106,180,245,${(dT*.07).toFixed(3)})`],['45%',`rgba(106,180,245,${(dT*.16).toFixed(3)})`],['55%',`rgba(106,180,245,${(dT*.04).toFixed(3)})`],['100%',`rgba(106,180,245,${(dT*.01).toFixed(3)})`]])]);
+      rect(svg,pad.l,pad.t,pw,ph,{fill:'url(#waveBg)'});
+      const sy=pad.t+ph*(.5-dT*.15);
+      line(svg,pad.l,sy,pad.l+pw,sy,{stroke:`rgba(106,180,245,${(dT*.5).toFixed(3)})`,'stroke-width':'.8','stroke-dasharray':'5,9'});
+      t(svg,pad.l+8,sy-5,'kanał SOFAR',{fill:`rgba(106,180,245,${(dT*.7).toFixed(3)})`,'font-size':'9','font-family':"'Share Tech Mono',monospace"});
+    }
+    for(let w=0;w<(dT>.1?3:1);w++){
+      const phOff=w*(TAU/(dT>.1?3:1)),wAmp=dT>.1?1-w*.22:1,pts=[];
+      for(let xi=0;xi<=pw;xi+=2){
+        const tx=xi/pw,dmp=Math.exp(-al*tx*8),bend=dT*Math.sin(tx*PI)*ph*.18,spr=(1-dT)*ph*.06*w;
+        pts.push([pad.l+xi,H/2+bend+spr+Math.sin(om*tx*TAU-wPh+phOff)*ph*.17*dmp*wAmp]);
+      }
+      polyline(svg,pts,{fill:'none',stroke:w===0?CG:`rgba(212,168,84,${(.35*(1-w*.2)*dT).toFixed(3)})`,'stroke-width':w===0?'2':'.8'});
+    }
+    t(svg,W-pad.r,pad.t+14,`ΔT=${G('r2T').value}  α=${G('r2a').value}  ω=${om}`,{'text-anchor':'end',fill:CG,'font-size':'10','font-family':"'Share Tech Mono',monospace"});
+  });
+  wPh+=0.045; wRaf=requestAnimationFrame(drawWaveFrame);
+}
+function startWave(){wOn=true;if(!wRaf)wRaf=requestAnimationFrame(drawWaveFrame);}
+function stopWave(){wOn=false;}
+G('r2T').oninput=()=>G('d2T').textContent=G('r2T').value;
+G('r2a').oninput=()=>G('d2a').textContent=G('r2a').value;
+G('r2w').oninput=()=>G('d2w').textContent=G('r2w').value;
+
+/* ── CHART 3: Quantum Spectrum ── */
+const ELEM=['H','He','Li','Be','B','C','N','O'],SERIES=['Lymana','Balmera','Paschena','Bracketta'],SN=[1,2,3,4],RH=1.097e7;
+function wlRGB(nm){let r,g,b;if(nm>=380&&nm<440){r=(440-nm)/60;g=0;b=1;}else if(nm>=440&&nm<490){r=0;g=(nm-440)/50;b=1;}else if(nm>=490&&nm<510){r=0;g=1;b=(510-nm)/20;}else if(nm>=510&&nm<580){r=(nm-510)/70;g=1;b=0;}else if(nm>=580&&nm<645){r=1;g=(645-nm)/65;b=0;}else if(nm>=645&&nm<=780){r=1;g=0;b=0;}else{r=.4;g=.4;b=.4;}const a=nm<420?.3+(nm-380)/40*.7:nm>700?.3+(780-nm)/80*.7:1;return`rgba(${~~(r*255)},${~~(g*255)},${~~(b*255)},${a.toFixed(2)})`;}
+function drawG3(){
+  const Z=+G('r3Z').value,nMax=+G('r3n').value,si=G('r3s').value-1,n1=SN[si];
+  G('d3Z').textContent=ELEM[Z-1]+' (Z='+Z+')'; G('d3n').textContent='n = '+nMax; G('d3s').textContent='Seria '+SERIES[si];
+  setSVG('g3',(svg,W,H)=>{
+    const pl=58,pr=20,pt=44,pb=52,pw=W-pl-pr,ph=H-pt-pb;
+    const Efn=n=>-13.6*Z*Z/(n*n),eMin=Efn(nMax),eRng=Efn(1)-eMin,ey=n=>pt+ph*(1-(Efn(n)-eMin)/eRng);
+    const barY=pt+ph*.14,barH=ph*.36;
+    rect(svg,0,0,W,H,{fill:CB});
+    const stops=[];for(let nm=380;nm<=780;nm+=4)stops.push([`${((nm-380)/400*100).toFixed(1)}%`,wlRGB(nm)]);
+    mkDefs(svg,[linGrad('specG',pl,0,pl+pw,0,stops)]);
+    rect(svg,pl,barY,pw,barH,{fill:'url(#specG)',opacity:'.88'}); rect(svg,pl,barY,pw,barH,{fill:'rgba(10,18,45,.5)'});
+    for(let n=1;n<=nMax;n++){const y=ey(n),col=n===1?CG:'rgba(212,168,84,.35)';line(svg,pl,y,pl+48,y,{stroke:col,'stroke-width':n===1?'1.5':'.8'});t(svg,pl-4,y+3.5,`n=${n}`,{'text-anchor':'end',fill:'rgba(212,168,84,.7)','font-size':'9','font-family':"'Share Tech Mono',monospace"});t(svg,pl+52,y+3.5,`${Efn(n).toFixed(1)}eV`,{fill:'rgba(212,168,84,.4)','font-size':'9','font-family':"'Share Tech Mono',monospace"});}
+    for(let n2=n1+1;n2<=nMax;n2++){const lnm=1e9/(RH*Z*Z*(1/(n1*n1)-1/(n2*n2))),col=wlRGB(lnm),vis=lnm>=380&&lnm<=780,ax=pl+60+(n2-n1-1)*22;line(svg,ax,ey(n2),ax,ey(n1),{stroke:vis?col:'rgba(180,180,180,.2)','stroke-width':'1','stroke-dasharray':'2,4'});if(vis){const lx=pl+(lnm-380)/400*pw;line(svg,lx,barY,lx,barY+barH,{stroke:col,'stroke-width':'2.5'});t(svg,lx,barY+barH+13,`${~~lnm}nm`,{'text-anchor':'middle',fill:col,'font-size':'9','font-family':"'Share Tech Mono',monospace"});}}
+    line(svg,pl,pt,pl,pt+ph,{stroke:CS,'stroke-width':'.8'}); line(svg,pl,pt+ph,pl+pw,pt+ph,{stroke:CS,'stroke-width':'.8'});
+    t(svg,pl+pw/2,H-4,'długość fali λ [nm]',{'text-anchor':'middle',fill:CS,'font-size':'10','font-family':"'Share Tech Mono',monospace"});
+    const tl=svgEl('text',{x:'13',y:`${pt+ph/2}`,'text-anchor':'middle',fill:CS,'font-size':'10','font-family':"'Share Tech Mono',monospace",'transform':`rotate(-90,13,${pt+ph/2})`});tl.textContent='energia [eV]';svg.appendChild(tl);
+    t(svg,W-pr,pt-10,`${ELEM[Z-1]} · Seria ${SERIES[si]} · n₁=${n1}`,{'text-anchor':'end',fill:CG,'font-size':'10','font-family':"'Share Tech Mono',monospace"});
+  });
+}
+G('r3Z').oninput=drawG3; G('r3n').oninput=drawG3; G('r3s').oninput=drawG3;
+
+/* ── CHART 4: Shannon Entropy ── */
+function Hbit(p){return(p<=0||p>=1)?0:-(p*Math.log2(p)+(1-p)*Math.log2(1-p));}
+function drawG4(){
+  const p0=G('r4p').value/100,noise=G('r4s').value/100,T=+G('r4T').value;
+  G('d4p').textContent=G('r4p').value+' %'; G('d4s').textContent=G('r4s').value+' %'; G('d4T').textContent=T+' K';
+  const Elv=(1.38e-23*T*Math.log(2)/1.6e-19),pn=clamp(p0+noise*.4*Math.sin(p0*17+noise*13),.01,.99);
+  setSVG('g4',(svg,W,H)=>{
+    const pad={l:52,r:148,t:30,b:44},pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+    rect(svg,0,0,W,H,{fill:CB}); gridLines(svg,pad,W,H);
+    mkDefs(svg,[linGrad('hFill',pad.l,pad.t,pad.l,pad.t+ph,[['0%','rgba(212,168,84,.12)'],['100%','rgba(212,168,84,.01)']])]);
+    const pts=[];for(let i=0;i<=200;i++){const p=i/200;pts.push([pad.l+p*pw,pad.t+ph*(1-Hbit(p))]);}
+    path(svg,'M'+pad.l+','+(pad.t+ph)+'L'+pts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join('L')+`L${pad.l+pw},${pad.t+ph}Z`,{fill:'url(#hFill)',stroke:'none'});
+    polyline(svg,pts,{fill:'none',stroke:'rgba(212,168,84,.35)','stroke-width':'1.5','stroke-linejoin':'round'});
+    const px0=pad.l+p0*pw,py0=pad.t+ph*(1-Hbit(p0));
+    line(svg,px0,pad.t,px0,pad.t+ph,{stroke:'rgba(212,168,84,.3)','stroke-width':'1','stroke-dasharray':'4,6'}); circle(svg,px0,py0,6,{fill:CG});
+    circle(svg,pad.l+pn*pw,pad.t+ph*(1-Hbit(pn)),5,{fill:CR});
+    for(let i=0;i<=4;i++){t(svg,pad.l+i*pw/4,pad.t+ph+13,['0','.25','.5','.75','1'][i],{'text-anchor':'middle',fill:CD,'font-size':'9','font-family':"'Share Tech Mono',monospace"});t(svg,pad.l-5,pad.t+ph*(1-i/4)+3,(i/4).toFixed(2),{'text-anchor':'end',fill:CD,'font-size':'9','font-family':"'Share Tech Mono',monospace"});}
+    axes(svg,pad,W,H,'prawdopodobieństwo p','H(p) [bit]');
+    const ix=pad.l+pw+10,iy=pad.t+16;
+    [[CG,'H(p₀) ='],[CG,Hbit(p0).toFixed(3)+' bit'],[CR,'H(pₙ) ='],[CR,Hbit(pn).toFixed(3)+' bit'],['rgba(212,168,84,.55)','E_land ='],['rgba(212,168,84,.55)',Elv.toExponential(2)+' eV'],['rgba(212,168,84,.45)','T = '+T+' K']].forEach(([col,txt],i)=>{t(svg,ix,iy+i*16,txt,{fill:col,'font-size':'10','font-family':"'Share Tech Mono',monospace"});});
+  });
+}
+G('r4p').oninput=drawG4; G('r4s').oninput=drawG4; G('r4T').oninput=drawG4;
+
+/* ── CHART 5: Temperature Scale ── */
+function drawG5(){
+  setSVG('g5',(svg,W,H)=>{
+    const pl=24,pr=24,axY=H/2,pw=W-pl-pr,logMin=Math.log10(.001),logMax=Math.log10(2e7);
+    const tx=T=>pl+(Math.log10(Math.max(T,.001))-logMin)/(logMax-logMin)*pw;
+    rect(svg,0,0,W,H,{fill:CB});
+    mkDefs(svg,[linGrad('tg',pl,0,pl+pw,0,[['0%','#3060cc'],['35%','#40a0cc'],['60%','#c8a830'],['80%','#cc6820'],['100%','#cc1010']])]);
+    svg.appendChild(svgEl('rect',{x:pl,y:axY-5,width:pw,height:10,fill:'url(#tg)',rx:3,opacity:.75}));
+    for(let exp=Math.ceil(logMin);exp<=Math.ceil(logMax);exp++){const T=Math.pow(10,exp);if(T>2e7*1.2)continue;const x=tx(T);line(svg,x,axY-10,x,axY+10,{stroke:CD,'stroke-width':'.8'});const lbl=T>=1e6?(T/1e6).toFixed(0)+'M':T>=1e3?(T/1e3).toFixed(0)+'k':T<1?T.toFixed(3):String(T);t(svg,x,axY+21,lbl,{'text-anchor':'middle',fill:CD,'font-size':'9','font-family':"'Share Tech Mono',monospace"});}
+    const ARM=72,refs=[{T:.001,lab:'Kondensat\nBosego-Einsteina',note:'.001 K',col:'#3060cc',up:true},{T:2.725,lab:'Promieniowanie\ntła CMB',note:'2.7 K',col:'#3888aa',up:false},{T:77,lab:'Ciekły azot',note:'77 K',col:'#44a0bb',up:true},{T:273,lab:'Topnienie lodu',note:'273 K',col:'#60a870',up:false},{T:310,lab:'Ciało człowieka',note:'310 K',col:'#709050',up:true},{T:1811,lab:'Topnienie żelaza',note:'1811 K',col:'#a07828',up:false},{T:5778,lab:'Powierzchnia\nSłońca',note:'5778 K',col:'#cc5818',up:true},{T:2.7e4,lab:'Piorun',note:'27k K',col:'#bb3810',up:false},{T:1.5e7,lab:'Jądro Słońca',note:'15M K',col:'#991010',up:true}];
+    refs.forEach(r=>{const x=tx(r.T);circle(svg,x,axY,5,{fill:r.col});const y0=axY+(r.up?-7:7),y1=axY+(r.up?-(ARM+8):(ARM+8));line(svg,x,y0,x,y1,{stroke:r.col,'stroke-width':'1','stroke-dasharray':'3,3'});const ty=r.up?y1-14:y1+14;t(svg,x,ty,r.note,{'text-anchor':'middle',fill:r.col,'font-size':'9','font-weight':'bold','font-family':"'Share Tech Mono',monospace"});r.lab.split('\n').forEach((ln,li)=>{t(svg,x,ty+(r.up?-14-li*13:14+li*13),ln,{'text-anchor':'middle',fill:r.col,'font-size':'9','font-family':"'Share Tech Mono',monospace"});});});
+    t(svg,W/2,18,'SKALA TEMPERATUR (logarytmiczna)',{'text-anchor':'middle',fill:CG,'font-size':'11','font-weight':'bold','font-family':"'Share Tech Mono',monospace"});
+    t(svg,pl,axY-10,'← zimno (tohu wa-bohu)',{fill:CS,'font-size':'9','font-family':"'Share Tech Mono',monospace"});
+    t(svg,pl+pw,axY-10,'gorąco (or) →',{'text-anchor':'end',fill:CS,'font-size':'9','font-family':"'Share Tech Mono',monospace"});
+  });
+}
+
+/* ── TAB SWITCHING ── */
+const DRAW={p1:drawG1,p2:null,p3:drawG3,p4:drawG4,p5:drawG5};
+function switchTab(tid){
+  document.querySelectorAll('.iw-tab').forEach(b=>b.classList.toggle('on',b.dataset.p===tid));
+  document.querySelectorAll('.iw-panel').forEach(p=>p.classList.toggle('on',p.id===tid));
+  stopWave(); if(tid==='p2')startWave(); else if(DRAW[tid])DRAW[tid]();
+}
+document.querySelectorAll('.iw-tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.p)));
+
+/* ── VIZ: ENERGY STATES ── */
+(function(){const cv=document.getElementById('cv-states');if(!cv)return;const cx=cv.getContext('2d');let t=0;function resize(){cv.width=cv.offsetWidth;cv.height=130;}window.addEventListener('resize',resize);resize();function draw(){const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);const half=Math.floor(W/2)-8,N=14,bw=Math.floor(half/N*.58),gap=Math.floor(half/N*.42),pad=4;for(let i=0;i<N;i++){const x=pad+i*(bw+gap),norm=(i/(N-1)-.5)*2,barH=(H*.78)*Math.exp(-norm*norm*5)*(1+.08*Math.sin(t+i*.5))+4,alpha=.45+.25*Math.sin(t+i*.4);cx.fillStyle=`rgba(224,120,120,${alpha})`;cx.fillRect(x,H-barH,bw,barH);}const rs=Math.floor(W/2)+8;for(let i=0;i<N;i++){const x=rs+i*(bw+gap);if(x+bw>W-pad)break;const barH=H*.28*(1+.1*Math.sin(t*.6+i*.35)),alpha=.35+.2*Math.sin(t+i*.3);cx.fillStyle=`rgba(82,208,176,${alpha})`;cx.fillRect(x,H-barH,bw,barH);}cx.font="11px 'JetBrains Mono',monospace";cx.fillStyle='rgba(224,120,120,.85)';cx.fillText('Ĥ — minimum energii (skóra, forma)',pad,16);cx.fillStyle='rgba(82,208,176,.85)';cx.fillText('Ĝ — płaskie widmo (Eden, tohu wa-bohu)',Math.floor(W/2)+8,16);cx.strokeStyle='rgba(160,185,255,.18)';cx.lineWidth=1;cx.beginPath();cx.moveTo(0,H-1);cx.lineTo(W,H-1);cx.stroke();cx.strokeStyle='rgba(160,185,255,.15)';cx.lineWidth=1;cx.setLineDash([4,4]);cx.beginPath();cx.moveTo(W/2,0);cx.lineTo(W/2,H);cx.stroke();cx.setLineDash([]);t+=.018;requestAnimationFrame(draw);}draw();})();
+
+/* ── VIZ: VACUUM ── */
+(function(){const cv=document.getElementById('cv-vacuum');if(!cv)return;const cx=cv.getContext('2d');let t=0;function resize(){cv.width=cv.offsetWidth;cv.height=120;}window.addEventListener('resize',resize);resize();function draw(){const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);cx.strokeStyle='rgba(106,180,245,.2)';cx.lineWidth=.8;cx.beginPath();cx.moveTo(0,H/2);cx.lineTo(W,H/2);cx.stroke();const waves=[{freq:.038,amp:22,spd:1,c:'rgba(82,208,176,.65)'},{freq:.055,amp:14,spd:1.4,c:'rgba(106,180,245,.5)'},{freq:.025,amp:30,spd:.7,c:'rgba(155,126,240,.4)'}];waves.forEach(w=>{cx.beginPath();cx.strokeStyle=w.c;cx.lineWidth=1.6;for(let x=0;x<W;x++){const y=H/2+w.amp*Math.sin(x*w.freq+t*w.spd)+w.amp*.4*Math.sin(x*w.freq*2.3+t*w.spd*1.7+1)+(Math.random()-.5)*3;x===0?cx.moveTo(x,y):cx.lineTo(x,y);}cx.stroke();});if(Math.random()<.05){const bx=Math.random()*W,by=H/2+(Math.random()-.5)*50;cx.beginPath();cx.arc(bx,by,1.5+Math.random()*2,0,TAU);cx.fillStyle='rgba(212,168,84,.9)';cx.fill();}cx.font="10px 'JetBrains Mono',monospace";cx.fillStyle='rgba(155,126,240,.7)';cx.fillText('Fluktuacje kwantowe próżni — tohu wa-bohu tętni',10,15);t+=.015;requestAnimationFrame(draw);}draw();})();
+
+/* ── VIZ: ENTROPY ISLANDS ── */
+(function(){const cv=document.getElementById('cv-entropy');if(!cv)return;const cx=cv.getContext('2d');let t=0;function resize(){cv.width=cv.offsetWidth;cv.height=210;}window.addEventListener('resize',resize);resize();function draw(){const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);cx.strokeStyle='rgba(60,80,140,.12)';cx.lineWidth=.5;for(let y=20;y<H;y+=40){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();}for(let x=0;x<W;x+=80){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}cx.strokeStyle='rgba(160,185,255,.25)';cx.lineWidth=1;cx.beginPath();cx.moveTo(0,H-28);cx.lineTo(W,H-28);cx.stroke();cx.beginPath();cx.strokeStyle='rgba(220,100,100,.6)';cx.lineWidth=2.5;for(let x=0;x<=W;x++){const y=(H-28)-((x/W)*(H*.52))-(H*.06)+Math.sin(x*.02)*4;x===0?cx.moveTo(x,y):cx.lineTo(x,y);}cx.stroke();const islands=[{pos:.13,w:50,h:38,lbl:'prokarioty',sub:'~3.5 mld lat'},{pos:.38,w:65,h:62,lbl:'wielokomórkowe',sub:'~600 mln lat'},{pos:.65,w:75,h:90,lbl:'świadomość',sub:'~300 tys. lat'}];islands.forEach(({pos,w,h,lbl,sub},i)=>{const cx2=pos*W,baseY=(H-28)-((cx2/W)*(H*.52))-(H*.06),amp=h*(1+.1*Math.sin(t*.4+i*.9));const gr=cx.createRadialGradient(cx2,baseY,0,cx2,baseY,w*1.4);gr.addColorStop(0,'rgba(82,208,176,.22)');gr.addColorStop(.6,'rgba(82,208,176,.06)');gr.addColorStop(1,'rgba(82,208,176,0)');cx.fillStyle=gr;cx.beginPath();cx.ellipse(cx2,baseY,w*1.4,amp*.9,0,0,TAU);cx.fill();cx.beginPath();cx.strokeStyle='rgba(82,208,176,.85)';cx.lineWidth=2;for(let dx=-w;dx<=w;dx++){const x=cx2+dx,y=baseY-amp*Math.exp(-dx*dx/(w*w*.45));dx===-w?cx.moveTo(x,y):cx.lineTo(x,y);}cx.stroke();const topY=baseY-amp-10;cx.font="bold 11px 'JetBrains Mono',monospace";cx.fillStyle='rgba(82,208,176,.95)';cx.textAlign='center';cx.fillText(lbl,cx2,topY);cx.font="9px 'JetBrains Mono',monospace";cx.fillStyle='rgba(82,208,176,.55)';cx.fillText(sub,cx2,topY+13);cx.textAlign='left';});cx.font="10px 'JetBrains Mono',monospace";cx.fillStyle='rgba(160,185,255,.45)';cx.fillText('czas →',W-62,H-10);cx.fillStyle='rgba(220,100,100,.7)';cx.fillText('▬ entropia globalna (Ĥ rośnie)',8,16);cx.fillStyle='rgba(82,208,176,.8)';cx.fillText('▲ złożoność lokalna (wyspy Ĝ)',8,30);t+=.012;requestAnimationFrame(draw);}draw();})();
 
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Użycie: python3 TERJ_chapter_X_patch.py <plik_terj.html>")
-        print("Wynik zapisany do: <plik_terj>_v2.html")
-        sys.exit(1)
-    
-    input_file = sys.argv[1]
-    output_file = input_file.replace('.html', '_z_rozdzialem_X.html')
-    if output_file == input_file:
-        output_file = input_file + '_v2.html'
-    
-    with open(input_file, 'r', encoding='utf-8') as f:
-        original = f.read()
-    
-    modified = apply_patch(original)
-    
-    with open(output_file, 'w', encoding='utf-8') as f:
-        f.write(modified)
-    
-    print(f"✓ Plik zaktualizowany: {output_file}")
-    print(f"  Dodano: CSS rozdziału X ({len(CSS_X)} znaków)")
-    print(f"  Dodano: Link nawigacyjny 'Kelipa·Ĝ'")
-    print(f"  Dodano: Rozdział X ({len(CHAPTER_X)} znaków)")
-    print(f"  Zaktualizowano: NAV_SEC w JavaScript")
-    print(f"  Dodano: Referencje bibliograficzne (Margulis, Axelrod)")
+/* ════════════════════════════════════════════════
+   IX — FRACTAL CANVAS (Dendrite)
+════════════════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('fractalCanvas');
+  if(!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = (canvas.offsetWidth || 380) * dpr;
+  canvas.height = 200 * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = canvas.offsetWidth || 380, H = 200;
+  ctx.fillStyle = '#0f1a0f'; ctx.fillRect(0, 0, W, H);
+  function branch(x, y, angle, length, depth, hue) {
+    if(depth === 0 || length < 1.2) return;
+    const ex = x + Math.cos(angle) * length;
+    const ey = y + Math.sin(angle) * length;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(ex, ey);
+    ctx.strokeStyle = `hsla(${hue},65%,${32+depth*5}%,${0.12+depth*0.065})`;
+    ctx.lineWidth = depth * 0.38; ctx.stroke();
+    const spread = 0.34 + Math.random() * 0.2;
+    const twist = (Math.random() - 0.5) * 0.28;
+    branch(ex, ey, angle - spread + twist, length * (0.67 + Math.random() * 0.1), depth - 1, hue + 9);
+    branch(ex, ey, angle + spread + twist, length * (0.67 + Math.random() * 0.1), depth - 1, hue + 9);
+    if(Math.random() > 0.55) branch(ex, ey, angle + twist, length * (0.54 + Math.random() * 0.1), depth - 1, hue + 4);
+  }
+  for(let i = 0; i < 3; i++) {
+    const sx = W * (0.28 + i * 0.22) + (Math.random() - 0.5) * 28;
+    branch(sx, H, -Math.PI / 2 + (Math.random() - 0.5) * 0.38, H * 0.37, 9, 118 + i * 16);
+  }
+  for(let i = 0; i < 55; i++) {
+    ctx.beginPath(); ctx.arc(Math.random()*W, Math.random()*H, Math.random()*1.1, 0, Math.PI*2);
+    ctx.fillStyle = `hsla(140,50%,60%,${Math.random()*0.14})`; ctx.fill();
+  }
+})();
+
+/* ════════════════════════════════════════════════
+   IX — CRYSTAL TIME CANVAS
+════════════════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('crystalCanvas');
+  if(!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = (canvas.offsetWidth || 380) * dpr;
+  canvas.height = 200 * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = canvas.offsetWidth || 380, H = 200;
+  ctx.fillStyle = '#0a0a1e'; ctx.fillRect(0, 0, W, H);
+  const cY = H / 2;
+  [0, Math.PI/3, 2*Math.PI/3, Math.PI, 4*Math.PI/3, 5*Math.PI/3].forEach((phase, i) => {
+    const amp = 26 - i * 3.2, freq = 3 + i * 0.5;
+    ctx.beginPath();
+    for(let x = 0; x <= W; x++) {
+      const tt = (x / W) * Math.PI * freq * 2;
+      const y = cY + Math.sin(tt + phase) * amp * Math.cos(tt * 0.15 + phase * 0.3);
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = `hsla(${228+i*13},70%,65%,${0.11+(6-i)*0.08})`;
+    ctx.lineWidth = i === 0 ? 1.5 : 0.8; ctx.stroke();
+  });
+  const period = W / 3;
+  for(let i = 1; i <= 2; i++) {
+    const x = i * period;
+    ctx.beginPath(); ctx.moveTo(x, 14); ctx.lineTo(x, H-14);
+    ctx.strokeStyle = 'rgba(150,150,220,0.1)'; ctx.setLineDash([3,5]);
+    ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+    ctx.font = `${9/dpr}px 'Share Tech Mono',monospace`;
+    ctx.fillStyle = 'rgba(180,180,240,0.32)'; ctx.textAlign = 'center';
+    ctx.fillText('T', x, 11);
+  }
+  ctx.beginPath(); ctx.moveTo(0,cY); ctx.lineTo(W,cY);
+  ctx.strokeStyle='rgba(100,100,180,0.13)'; ctx.lineWidth=0.5; ctx.stroke();
+  for(let i=0;i<=3;i++){
+    const x=i*period;
+    ctx.beginPath(); ctx.arc(x,cY,3.5,0,Math.PI*2);
+    ctx.fillStyle='rgba(150,180,255,0.28)'; ctx.fill();
+  }
+})();
+
+/* ── INIT ── */
+window.addEventListener('load',()=>{
+  drawG1(); drawG3(); drawG4(); drawG5();
+  window.addEventListener('resize',()=>{
+    const active=document.querySelector('.iw-panel.on')?.id;
+    if(active==='p1')drawG1(); else if(active==='p3')drawG3(); else if(active==='p4')drawG4(); else if(active==='p5')drawG5();
+  });
+});
+</script>
+</body>
+</html>
